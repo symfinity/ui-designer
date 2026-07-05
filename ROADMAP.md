@@ -57,7 +57,7 @@ symfinity-docs handbook examples, optional ux-workshop theme-pack handoff (JSON 
 
 ### 0.9.x — Hardening
 
-Studio interaction acceptance suite expansion, visual regression baselines, `repo:doctor` designer checks, performance on large DTCG graphs, API freeze preparation, migration notes from ui-themer (manual paths only)
+Studio interaction acceptance suite expansion, visual regression baselines, `repo:doctor` designer checks, performance on large DTCG graphs, API freeze preparation
 
 ### 1.0.x — Stable dev API
 

@@ -23,4 +23,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - Requires `symfinity/ui-kernel` **^0.3.1** (theme inheritance)
-- Replaces deprecated **ui-themer** for new authoring work — no legacy YAML import path
+- DTCG-native authoring only — no legacy YAML pack import path

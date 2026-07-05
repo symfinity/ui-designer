@@ -28,8 +28,6 @@
 - **Export packs** — validated DTCG trees under `config/themes/{lineage}/`
 - **Dev-only forever** — Flex recipe registers bundle for **dev** and **test** only
 
-Replaces deprecated **ui-themer** for new theme authoring work.
-
 ## Prerequisites
 
 Add the [symfinity/recipes](https://github.com/symfinity/recipes) Flex endpoint to your project's `composer.json` (see [recipes README](https://github.com/symfinity/recipes/blob/main/README.md)).
@@ -54,7 +52,7 @@ With `APP_ENV=dev`, open **`/ui-designer`**. See [Quickstart](docs/quickstart.md
 - **[Installation](docs/installation.md)** — Flex OOTB, prod guardrails
 - **[Configuration](docs/configuration.md)** — export root, undo, snapshots
 - **[Commands](docs/commands.md)** — `ui-designer:*` CLI
-- **[Upgrade](docs/upgrade.md)** — 0.1.0 and ui-themer migration notes
+- **[Upgrade](docs/upgrade.md)** — 0.1.0 release notes
 - **[Roadmap](ROADMAP.md)** — 0.1.x–1.0.x milestones
 - **[Verification](docs/verification.md)** — clean-app smoke (P0 profile)
 

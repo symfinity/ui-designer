@@ -6,7 +6,7 @@ Maintainer smoke on dogfood `ui-lab` after `make dogfood-serve SLUG=ui-lab`:
 
 | Check | Route / action | Expected |
 |-------|----------------|----------|
-| Hub link | `/` | Links to **UI Designer** at `/ui-designer`, not ui-themer |
+| Hub link | `/` | Links to **UI Designer** at `/ui-designer` |
 | Studio shell | `/ui-designer/studio` | Nav Import · Studio · Export; panel + canvas; kernel-token chrome |
 | Preset load | Load **semantic** preset | Preview CSS via single `#theme-live-css`; ux-blocks specimens visible |
 | Ref picker | Apply primary → `blue.600` | Live preview updates; contrast panel rows refresh |
@@ -24,10 +24,4 @@ Screenshot or checklist tick required before maintainer tag **v0.1.0**.
 cd src/symfinity
 docker compose --env-file .env.docker run --rm -T -w /app php \
   vendor/bin/phpunit -c packages/ui-designer/phpunit.xml.dist
-```
-
-Grep gate (no legacy):
-
-```bash
-grep -rE 'ui-themer|UiThemer|ui_themer' packages/ui-designer/
 ```
