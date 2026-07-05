@@ -38,6 +38,7 @@ class UiDesignerTestKernel extends Kernel
             'secret' => 'test-secret',
             'test' => true,
             'csrf_protection' => true,
+            'translator' => ['enabled' => false],
             'router' => ['utf8' => true],
             'php_errors' => ['log' => false],
             'form' => ['enabled' => false],
