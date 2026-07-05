@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Designer{% if draft %} — {{ draft.id }}{% endif %}</title>
+    {% if preview_css %}
+        <style id="theme-live-css">{{ preview_css|raw }}</style>
+    {% else %}
+        <style id="theme-live-css"></style>
+    {% endif %}
+</head>
+<body class="ui-designer-studio" data-theme="{{ draft ? draft.id : 'designer-empty' }}"{% if preview_mode == 'dark' %} data-preview-mode="dark"{% endif %}
+      data-controller="studio"
+      data-studio-apply-url-value="{{ path('ui_designer_studio_apply_colour') }}"
+      data-studio-undo-url-value="{{ path('ui_designer_studio_undo') }}"
+      data-studio-select-role-url-value="{{ path('ui_designer_studio_select_role') }}"
+>
+<nav class="ui-designer-nav" aria-label="UI Designer">
+    <a href="{{ path('ui_designer_import_hub') }}" class="{{ active_nav == 'import' ? 'is-active' : '' }}">Import</a>
+    <a href="{{ path('ui_designer_studio') }}" class="{{ active_nav == 'studio' ? 'is-active' : '' }}">Studio</a>
+    <span class="ui-designer-nav__sep">Export</span>
+</nav>
+
+<main class="ui-designer-studio__shell">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <p class="ui-designer-flash ui-designer-flash--{{ label }}">{{ message }}</p>
+        {% endfor %}
+    {% endfor %}
+
+    {% if draft %}
+        <header class="ui-designer-topbar">
+            <h1>{{ draft.id }}</h1>
+            <span class="ui-designer-topbar__meta">{{ draft.lineage }} · {{ preview_mode }}</span>
+            <form method="post" action="{{ path('ui_designer_studio_load') }}" class="ui-designer-presets">
+                <select name="theme_id">
+                    {% for preset in presets %}
+                        <option value="{{ preset.id }}"{% if preset.id == active_preset_id %} selected{% endif %}>{{ preset.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Load preset</button>
+            </form>
+        </header>
+
+        <div class="ui-designer-workspace">
+            <aside class="ui-designer-sidebar" aria-label="Theme controls">
+                <section class="ui-designer-panel">
+                    <h2>Semantic roles</h2>
+                    {% for group in token_groups %}
+                        <details{% if group.id == 'core' %} open{% endif %}>
+                            <summary>{{ group.label }}</summary>
+                            <ul class="ui-designer-token-list">
+                                {% for role in group.roles %}
+                                    <li>
+                                        <button type="button"
+                                                class="ui-designer-token-row{% if role == selected_role %} is-selected{% endif %}"
+                                                data-action="studio#selectRole"
+                                                data-role="{{ role }}">
+                                            {{ role }}
+                                            {% if resolved_colors[role] is defined %}
+                                                <span class="ui-designer-swatch" style="background: {{ resolved_colors[role].color }}"></span>
+                                            {% endif %}
+                                        </button>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                    {% endfor %}
+                </section>
+
+                <section class="ui-designer-panel">
+                    <h2>Ref picker</h2>
+                    <label for="studio-colour-input">Palette ref for <code id="studio-active-role">{{ selected_role }}</code></label>
+                    <input id="studio-colour-input" type="text" placeholder="red.500" data-studio-target="refInput">
+                    <button type="button" id="studio-apply-mapping" data-action="studio#applyColour">Apply</button>
+                    <button type="button" data-action="studio#undo"{% if not can_undo %} disabled{% endif %}>Undo</button>
+                </section>
+
+                <section class="ui-designer-panel">
+                    <h2>Structure</h2>
+                    <p class="ui-designer-hint">Use studio API or CLI for radius/shadow steps.</p>
+                </section>
+
+                <section class="ui-designer-panel">
+                    <h2>Snapshots</h2>
+                    <form method="post" action="{{ path('ui_designer_studio_snapshot_save') }}" data-turbo="false">
+                        <input type="text" name="label" placeholder="Label">
+                        <button type="submit">Save snapshot</button>
+                    </form>
+                </section>
+            </aside>
+
+            <div class="ui-designer-canvas">
+                <div id="studio-preview" class="ui-designer-preview" data-theme="{{ draft.id }}">
+                    {% include '@UiDesigner/studio/_preview_specimens.html.twig' %}
+                </div>
+            </div>
+
+            <aside class="ui-designer-contrast" aria-label="Contrast">
+                <h2>Contrast</h2>
+                {% if contrast_panel.available %}
+                    <ul>
+                        {% for row in contrast_panel.rows %}
+                            <li class="{{ row.pass ? 'pass' : 'fail' }}">
+                                {{ row.foreground }} on {{ row.background }}:
+                                {% if row.ratio %}{{ row.ratio|number_format(2) }}:1{% endif %}
+                                ({{ row.level }})
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>{{ contrast_panel.notice }}</p>
+                {% endif %}
+            </aside>
+        </div>
+    {% else %}
+        <section class="ui-designer-empty">
+            <h1>UI Designer</h1>
+            <p>Load a built-in preset to start authoring DTCG theme tokens.</p>
+            <form method="post" action="{{ path('ui_designer_studio_load') }}">
+                <input type="hidden" name="theme_id" value="semantic">
+                <button type="submit">Load semantic preset</button>
+            </form>
+        </section>
+    {% endif %}
+</main>
+</body>
+</html>

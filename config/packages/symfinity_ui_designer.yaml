@@ -1,0 +1,17 @@
+when@dev:
+    symfinity_ui_designer:
+        export_root: '%kernel.project_dir%/var/ui-designer'
+        snapshots:
+            max: 10
+        undo:
+            max_depth: 20
+        strict_export: false
+
+when@test:
+    symfinity_ui_designer:
+        export_root: '%kernel.project_dir%/var/ui-designer'
+        snapshots:
+            max: 10
+        undo:
+            max_depth: 20
+        strict_export: false

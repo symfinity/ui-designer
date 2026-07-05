@@ -1,0 +1,44 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Symfinity\UiDesigner\:
+        resource: '../src/'
+        exclude:
+            - '../src/UiDesignerBundle.php'
+            - '../src/DependencyInjection/'
+            - '../src/Model/'
+
+    Symfinity\UiDesigner\Factory\DtcgDraftFactory:
+        arguments:
+            $exportRoot: '%symfinity.ui_designer.export_root%'
+            $strictExport: '%symfinity.ui_designer.strict_export%'
+
+    Symfinity\UiDesigner\Collaboration\UndoStack:
+        arguments:
+            $maxDepth: '%symfinity.ui_designer.undo.max_depth%'
+
+    Symfinity\UiDesigner\Collaboration\DraftSnapshotStore:
+        arguments:
+            $maxPerDraft: '%symfinity.ui_designer.snapshots.max%'
+
+    Symfinity\UiDesigner\Preview\PreviewSessionStore:
+        arguments:
+            $ttlSeconds: 14400
+
+    Symfinity\UiDesigner\Accessibility\StrictExportGate:
+        arguments:
+            $strictExportEnabled: '%symfinity.ui_designer.strict_export%'
+
+    Symfinity\UiDesigner\Import\DesignTokenImportPort: '@Symfinity\UiDesigner\Import\ShadcnRegistryImporter'
+
+    Symfinity\UiDesigner\Import\ShadcnRegistryImporter:
+        autowire: true
+
+    Symfinity\UiDesigner\Import\TokenFileImporter:
+        autowire: true
+
+    Symfinity\UiKernel\Preview\SessionThemeInjectionPort: '@Symfinity\UiDesigner\Preview\DesignerPreviewTokenResolver'
+
+    Symfinity\UiDesigner\Preview\DesignerPreviewTokenResolver: ~

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>UI Designer — Import</title>
+</head>
+<body class="ui-designer-studio">
+<nav class="ui-designer-nav">
+    <a href="{{ path('ui_designer_import_hub') }}" class="is-active">Import</a>
+    <a href="{{ path('ui_designer_studio') }}">Studio</a>
+    <span class="ui-designer-nav__sep">Export</span>
+</nav>
+<main class="ui-designer-studio__shell">
+    <h1>Import hub</h1>
+    <p>Import external design tokens into a DTCG-native designer draft.</p>
+
+    <section class="ui-designer-panel">
+        <h2>Shadcn registry</h2>
+        <form method="post" action="{{ path('ui_designer_import_registry_review') }}">
+            <label>Theme name <input type="text" name="name" placeholder="zinc" required></label>
+            <button type="submit">Import and review in studio</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>
