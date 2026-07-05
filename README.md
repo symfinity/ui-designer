@@ -15,9 +15,6 @@
 
 </div>
 
-> [!WARNING]
-> **NOT READY** — split-mirror docs wave in progress; not tagged on Packagist yet.
-
 > [!NOTE]
 > **Read-only mirror.**
 > See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose changes.

@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +63,14 @@ jobs:
             symfony/http-foundation:^${{ matrix.symfony }} \
             symfony/http-kernel:^${{ matrix.symfony }} \
             symfony/routing:^${{ matrix.symfony }} \
-            symfony/yaml:^${{ matrix.symfony }}
+            symfony/yaml:^${{ matrix.symfony }} \
+            symfony/twig-bundle:^${{ matrix.symfony }} \
+            symfony/asset-mapper:^${{ matrix.symfony }} \
+            symfony/browser-kit:^${{ matrix.symfony }} \
+            symfony/css-selector:^${{ matrix.symfony }} \
+            symfony/process:^${{ matrix.symfony }} \
+            'symfony/stimulus-bundle:^2.0|^3.0' \
+            'symfony/ux-twig-component:^2.0|^3.0'
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
@@ -70,4 +79,4 @@ jobs:
         run: vendor/bin/phpunit --colors=always
 
       - name: PHPStan
-        run: vendor/bin/phpstan analyse --memory-limit=512M
+        run: vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=512M

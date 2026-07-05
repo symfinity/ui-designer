@@ -11,18 +11,33 @@ declare(strict_types=1);
  */
 
 $packageRoot = dirname(__DIR__);
-$monorepoRoot = dirname($packageRoot, 2);
-$monorepoAutoload = $monorepoRoot.'/vendor/autoload.php';
+$autoload = null;
 
-if (is_file($monorepoRoot.'/mono.json') && is_file($monorepoAutoload)) {
-    if (!class_exists(\Composer\Autoload\ClassLoader::class, false)) {
-        require $monorepoAutoload;
+$dir = $packageRoot;
+for ($i = 0; $i < 5; ++$i) {
+    if (is_file($dir.'/mono.json') && is_file($dir.'/vendor/autoload.php')) {
+        $autoload = $dir.'/vendor/autoload.php';
+        break;
     }
-} elseif (is_file($packageRoot.'/vendor/autoload.php')) {
-    require $packageRoot.'/vendor/autoload.php';
-} else {
+
+    $parent = dirname($dir);
+    if ($parent === $dir) {
+        break;
+    }
+    $dir = $parent;
+}
+
+if ($autoload === null && is_file($packageRoot.'/vendor/autoload.php')) {
+    $autoload = $packageRoot.'/vendor/autoload.php';
+}
+
+if ($autoload === null) {
     fwrite(STDERR, "Composer autoload not found — run composer install in the package or monorepo.\n");
     exit(1);
+}
+
+if (!class_exists(\Composer\Autoload\ClassLoader::class, false)) {
+    require $autoload;
 }
 
 $localBootstrap = __DIR__.'/bootstrap.local.php';
