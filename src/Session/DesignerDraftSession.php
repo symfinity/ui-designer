@@ -9,6 +9,7 @@ use Symfinity\UiDesigner\Authoring\StructuralDraft;
 use Symfinity\UiDesigner\Model\AuthorGraphNode;
 use Symfinity\UiDesigner\Model\DesignerDraft;
 use Symfinity\UiDesigner\Model\DesignerPairSession;
+use Symfinity\UiDesigner\Util\PayloadUtil;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -52,7 +53,7 @@ final class DesignerDraftSession
             return null;
         }
 
-        return DesignerDraft::fromPayload($payload);
+        return DesignerDraft::fromPayload(PayloadUtil::stringKeyMap($payload));
     }
 
     public function isDirty(): bool
@@ -98,7 +99,7 @@ final class DesignerDraftSession
             return null;
         }
 
-        return DesignerPairSession::fromPayload($payload);
+        return DesignerPairSession::fromPayload(PayloadUtil::stringKeyMap($payload));
     }
 
     public function storePair(DesignerPairSession $pair, bool $dirty = false): void
@@ -151,7 +152,7 @@ final class DesignerDraftSession
             return StructuralDraft::empty();
         }
 
-        return StructuralDraft::fromPayload($payload);
+        return StructuralDraft::fromPayload(PayloadUtil::stringKeyMap($payload));
     }
 
     public function storeStructural(StructuralDraft $structural): void
@@ -178,7 +179,7 @@ final class DesignerDraftSession
             return new SelectedRole('primary', time());
         }
 
-        return SelectedRole::fromPayload($payload);
+        return SelectedRole::fromPayload(PayloadUtil::stringKeyMap($payload));
     }
 
     public function storeSelectedRole(SelectedRole $selection): void

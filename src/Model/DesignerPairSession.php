@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Model;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final readonly class DesignerPairSession
 {
     public const MODE_LIGHT = 'light';
@@ -60,17 +62,12 @@ final readonly class DesignerPairSession
      */
     public static function fromPayload(array $payload): self
     {
-        /** @var array<string, mixed> $lightPayload */
-        $lightPayload = isset($payload['light_draft']) && is_array($payload['light_draft']) ? $payload['light_draft'] : [];
-        /** @var array<string, mixed> $darkPayload */
-        $darkPayload = isset($payload['dark_draft']) && is_array($payload['dark_draft']) ? $payload['dark_draft'] : [];
-
         return new self(
-            lightId: (string) ($payload['light_id'] ?? ''),
-            darkId: (string) ($payload['dark_id'] ?? ''),
-            activeMode: (string) ($payload['active_mode'] ?? self::MODE_LIGHT),
-            lightDraft: DesignerDraft::fromPayload($lightPayload),
-            darkDraft: DesignerDraft::fromPayload($darkPayload),
+            lightId: PayloadUtil::string($payload['light_id'] ?? null),
+            darkId: PayloadUtil::string($payload['dark_id'] ?? null),
+            activeMode: PayloadUtil::string($payload['active_mode'] ?? null, self::MODE_LIGHT),
+            lightDraft: DesignerDraft::fromPayload(PayloadUtil::stringKeyMap($payload['light_draft'] ?? null)),
+            darkDraft: DesignerDraft::fromPayload(PayloadUtil::stringKeyMap($payload['dark_draft'] ?? null)),
         );
     }
 }

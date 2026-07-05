@@ -24,9 +24,9 @@ final class UiDesignerExtension extends Extension
         /** @var array<string, mixed> $undo */
         $undo = $config['undo'];
 
-        $container->setParameter('symfinity.ui_designer.export_root', (string) $config['export_root']);
-        $container->setParameter('symfinity.ui_designer.snapshots.max', (int) ($snapshots['max'] ?? 10));
-        $container->setParameter('symfinity.ui_designer.undo.max_depth', (int) ($undo['max_depth'] ?? 20));
+        $container->setParameter('symfinity.ui_designer.export_root', is_string($config['export_root']) ? $config['export_root'] : '');
+        $container->setParameter('symfinity.ui_designer.snapshots.max', is_int($snapshots['max'] ?? null) ? $snapshots['max'] : 10);
+        $container->setParameter('symfinity.ui_designer.undo.max_depth', is_int($undo['max_depth'] ?? null) ? $undo['max_depth'] : 20);
         $container->setParameter('symfinity.ui_designer.strict_export', (bool) ($config['strict_export'] ?? false));
         $container->setParameter('symfinity.ui_designer.bundle_path', \dirname(__DIR__, 2));
     }

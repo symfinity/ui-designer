@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Authoring;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final readonly class StructuralDraft
 {
     public const RADIUS_STEPS = ['xs', 'sm', 'md', 'lg', 'full'];
@@ -26,12 +28,9 @@ final readonly class StructuralDraft
      */
     public static function fromPayload(array $payload): self
     {
-        $radius = isset($payload['radius_step']) ? (string) $payload['radius_step'] : null;
-        $shadow = isset($payload['shadow_step']) ? (string) $payload['shadow_step'] : null;
-
         return new self(
-            radiusStep: $radius !== '' ? $radius : null,
-            shadowStep: $shadow !== '' ? $shadow : null,
+            radiusStep: PayloadUtil::optionalString($payload['radius_step'] ?? null),
+            shadowStep: PayloadUtil::optionalString($payload['shadow_step'] ?? null),
         );
     }
 

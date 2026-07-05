@@ -27,7 +27,7 @@ final class DtcgExportService
         $this->filesystem->dumpFile($lineageDir . '/theme.meta.yaml', $pack['theme.meta.yaml']);
 
         foreach ($pack['variants'] as $variantId => $yaml) {
-            $filename = is_string($variantId) && str_ends_with($variantId, '.yaml')
+            $filename = str_ends_with($variantId, '.yaml')
                 ? $variantId
                 : $variantId . '.dtcg.yaml';
             $this->filesystem->dumpFile($lineageDir . '/' . $filename, $yaml);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Collaboration;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
 use Symfony\Component\Filesystem\Filesystem;
 
 final class DraftSnapshotStore
@@ -45,7 +46,7 @@ final class DraftSnapshotStore
             if (!is_array($data)) {
                 continue;
             }
-            $snapshots[] = DraftSnapshot::fromArray($data);
+            $snapshots[] = DraftSnapshot::fromArray(PayloadUtil::stringKeyMap($data));
         }
 
         usort(

@@ -79,7 +79,7 @@ final class DtcgDraftFactory
     }
 
     /**
-     * @return array{theme.meta.yaml: string, variants: array<string, string>}
+     * @return array{'theme.meta.yaml': string, variants: array<string, string>}
      */
     public function buildExportPack(DesignerDraft $draft): array
     {

@@ -36,8 +36,9 @@ final class ImportTokensCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $typeOption = $input->getOption('type');
         $request = new ImportRequest(
-            type: (string) $input->getOption('type'),
+            type: is_string($typeOption) ? $typeOption : 'dtcg-yaml',
             file: $this->nullableString($input->getOption('file')),
             name: $this->nullableString($input->getOption('name')),
         );

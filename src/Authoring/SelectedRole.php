@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Authoring;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final readonly class SelectedRole
 {
     public function __construct(
@@ -29,8 +31,8 @@ final readonly class SelectedRole
     public static function fromPayload(array $payload): self
     {
         return new self(
-            activeRole: (string) ($payload['active_role'] ?? 'primary'),
-            updatedAt: (int) ($payload['updated_at'] ?? time()),
+            activeRole: PayloadUtil::string($payload['active_role'] ?? null, 'primary'),
+            updatedAt: PayloadUtil::int($payload['updated_at'] ?? null, time()),
         );
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Model;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final class AuthorGraphNode
 {
     public const SOURCE_INLINE_DTCG = 'inline_dtcg';
@@ -45,11 +47,17 @@ final class AuthorGraphNode
     public static function fromPayload(array $payload): self
     {
         $extends = $payload['extends'] ?? null;
+        $nodePayload = $payload['payload'] ?? null;
+        if (is_array($nodePayload)) {
+            $nodePayload = PayloadUtil::stringKeyMap($nodePayload);
+        } elseif (!is_string($nodePayload)) {
+            $nodePayload = null;
+        }
 
         return new self(
-            nodeId: (string) ($payload['node_id'] ?? ''),
-            source: (string) ($payload['source'] ?? self::SOURCE_INLINE_DTCG),
-            payload: $payload['payload'] ?? null,
+            nodeId: PayloadUtil::string($payload['node_id'] ?? null),
+            source: PayloadUtil::string($payload['source'] ?? null, self::SOURCE_INLINE_DTCG),
+            payload: $nodePayload,
             extends: is_string($extends) && $extends !== '' ? $extends : null,
         );
     }

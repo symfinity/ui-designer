@@ -21,18 +21,24 @@ final class StrictExportGate
         }
 
         $panel = $this->contrastPanel->present($draft);
-        $failures = array_values(array_filter(
-            $panel['rows'],
-            static fn (array $row): bool => !($row['pass'] ?? true),
-        ));
+        if (!$panel['available']) {
+            return;
+        }
 
-        if ($failures === []) {
+        $failureCount = 0;
+        foreach ($panel['rows'] as $row) {
+            if ($row['pass'] === false) {
+                ++$failureCount;
+            }
+        }
+
+        if ($failureCount === 0) {
             return;
         }
 
         throw new \RuntimeException(sprintf(
             'Strict accessibility export blocked: %d contrast warning(s). Fix refs or use --skip-accessibility.',
-            count($failures),
+            $failureCount,
         ));
     }
 

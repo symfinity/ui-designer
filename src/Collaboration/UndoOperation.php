@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Collaboration;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final readonly class UndoOperation
 {
     public function __construct(
@@ -35,11 +37,11 @@ final readonly class UndoOperation
     public static function fromPayload(array $payload): self
     {
         return new self(
-            role: (string) ($payload['role'] ?? ''),
-            mode: (string) ($payload['mode'] ?? 'single'),
-            previousRef: (string) ($payload['previous_ref'] ?? ''),
-            nextRef: (string) ($payload['next_ref'] ?? ''),
-            timestamp: (int) ($payload['timestamp'] ?? time()),
+            role: PayloadUtil::string($payload['role'] ?? null),
+            mode: PayloadUtil::string($payload['mode'] ?? null, 'single'),
+            previousRef: PayloadUtil::string($payload['previous_ref'] ?? null),
+            nextRef: PayloadUtil::string($payload['next_ref'] ?? null),
+            timestamp: PayloadUtil::int($payload['timestamp'] ?? null, time()),
         );
     }
 }

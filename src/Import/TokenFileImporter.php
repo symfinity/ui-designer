@@ -58,7 +58,7 @@ final class TokenFileImporter implements DesignTokenImportPort
 
         $color = [];
         foreach ($parsed as $key => $value) {
-            if (!is_string($key) || !is_array($value)) {
+            if (!is_array($value)) {
                 continue;
             }
             if (isset($value['$value'])) {

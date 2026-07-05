@@ -72,7 +72,7 @@ final class DtcgSemanticEditor
 
         $variantId ??= $this->activeVariantId($draft);
         $payloads = $draft->variantPayloads;
-        if (!isset($payloads[$variantId]) || !is_array($payloads[$variantId])) {
+        if (!array_key_exists($variantId, $payloads)) {
             throw new \InvalidArgumentException(sprintf('Variant "%s" not found in draft.', $variantId));
         }
 

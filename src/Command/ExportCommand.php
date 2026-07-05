@@ -39,7 +39,8 @@ final class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $themeId = (string) $input->getArgument('theme_id');
+        $themeIdArg = $input->getArgument('theme_id');
+        $themeId = is_string($themeIdArg) ? $themeIdArg : '';
 
         try {
             $draft = $this->loader->loadVariant($themeId);

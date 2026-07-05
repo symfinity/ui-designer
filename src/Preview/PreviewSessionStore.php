@@ -19,6 +19,9 @@ final class PreviewSessionStore
     ) {
     }
 
+    /**
+     * @param array<string, mixed>|null $extensions
+     */
     public function mint(
         DesignerDraft $draft,
         ?DesignerDraft $darkDraft = null,
@@ -79,9 +82,6 @@ final class PreviewSessionStore
         }
     }
 
-    /**
-     * @param array<string, mixed>|null $extensions
-     */
     private function assertDraftSize(DesignerDraft $draft): void
     {
         $serialized = serialize($draft->toPayload());

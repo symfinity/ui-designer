@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Collaboration;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final readonly class DraftSnapshot
 {
     /**
@@ -42,12 +44,12 @@ final readonly class DraftSnapshot
             : new \DateTimeImmutable();
 
         /** @var array<string, mixed> $payload */
-        $payload = isset($data['payload']) && is_array($data['payload']) ? $data['payload'] : [];
+        $payload = PayloadUtil::stringKeyMap($data['payload'] ?? null);
 
         return new self(
-            id: (string) ($data['id'] ?? ''),
-            label: (string) ($data['label'] ?? ''),
-            draftId: (string) ($data['draft_id'] ?? ''),
+            id: PayloadUtil::string($data['id'] ?? null),
+            label: PayloadUtil::string($data['label'] ?? null),
+            draftId: PayloadUtil::string($data['draft_id'] ?? null),
             createdAt: $createdAt,
             payload: $payload,
         );

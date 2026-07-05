@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Import;
 
-use Symfinity\UiDesigner\Authoring\DtcgRolePathMapper;
 use Symfinity\UiDesigner\Authoring\DtcgSemanticEditor;
 use Symfinity\UiDesigner\Model\AuthorGraphNode;
 use Symfinity\UiDesigner\Model\DesignerDraft;
+use Symfinity\UiDesigner\Util\PayloadUtil;
 use Symfinity\UiKernel\Palette\OklchColorSpace;
 use Symfinity\UiKernel\Palette\PaletteRampSampler;
 use Symfony\Component\HttpClient\HttpClient;
@@ -30,7 +30,6 @@ final class ShadcnRegistryImporter implements DesignTokenImportPort
 
     public function __construct(
         private readonly DtcgSemanticEditor $semanticEditor,
-        private readonly DtcgRolePathMapper $pathMapper,
         private readonly OklchColorSpace $colorSpace = new OklchColorSpace(),
         private readonly PaletteRampSampler $sampler = new PaletteRampSampler(),
         private readonly ?HttpClientInterface $httpClient = null,
@@ -48,7 +47,7 @@ final class ShadcnRegistryImporter implements DesignTokenImportPort
         /** @var array<string, mixed> $data */
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-        $name = $request->name ?? (string) ($data['name'] ?? 'imported-theme');
+        $name = $request->name ?? PayloadUtil::string($data['name'] ?? null, 'imported-theme');
         $lightVars = $this->extractCssVars($data, 'cssVars', 'light');
         $darkVars = $this->extractCssVars($data, 'cssVars', 'dark');
 

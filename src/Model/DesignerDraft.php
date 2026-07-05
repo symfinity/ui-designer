@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Model;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
+
 final class DesignerDraft
 {
     /**
@@ -46,23 +48,18 @@ final class DesignerDraft
         if (isset($payload['graph']) && is_array($payload['graph'])) {
             foreach ($payload['graph'] as $nodePayload) {
                 if (is_array($nodePayload)) {
-                    $graph[] = AuthorGraphNode::fromPayload($nodePayload);
+                    $graph[] = AuthorGraphNode::fromPayload(PayloadUtil::stringKeyMap($nodePayload));
                 }
             }
         }
 
-        /** @var array<string, string> $variants */
-        $variants = isset($payload['variants']) && is_array($payload['variants']) ? $payload['variants'] : [];
-
-        /** @var array<string, array<string, mixed>> $variantPayloads */
-        $variantPayloads = isset($payload['variant_payloads']) && is_array($payload['variant_payloads'])
-            ? $payload['variant_payloads']
-            : [];
+        $variants = PayloadUtil::stringMap($payload['variants'] ?? null);
+        $variantPayloads = PayloadUtil::nestedStringKeyMaps($payload['variant_payloads'] ?? null);
 
         return new self(
-            id: (string) ($payload['id'] ?? ''),
-            lineage: (string) ($payload['lineage'] ?? ''),
-            designSystemId: (string) ($payload['design_system_id'] ?? 'symfinity'),
+            id: PayloadUtil::string($payload['id'] ?? null),
+            lineage: PayloadUtil::string($payload['lineage'] ?? null),
+            designSystemId: PayloadUtil::string($payload['design_system_id'] ?? null, 'symfinity'),
             graph: $graph,
             variants: $variants,
             variantPayloads: $variantPayloads,

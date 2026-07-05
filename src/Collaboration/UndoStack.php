@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Collaboration;
 
+use Symfinity\UiDesigner\Util\PayloadUtil;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -73,7 +74,7 @@ final class UndoStack
             if (!is_array($item)) {
                 continue;
             }
-            $operations[] = UndoOperation::fromPayload($item);
+            $operations[] = UndoOperation::fromPayload(PayloadUtil::stringKeyMap($item));
         }
 
         return $operations;
