@@ -1,0 +1,51 @@
+# Bundled Fonttrio pairing ids for ui-designer typography drawer (142).
+# Consumers may extend via symfinity_font_manager.pairings.catalog; bundled entries merge in.
+pairings:
+  editorial:
+    label: Editorial — Playfair Display + Source Serif 4 + JetBrains Mono
+  swiss:
+    label: Swiss — Inter Tight + Open Sans + IBM Plex Mono
+  playfair-display-roboto:
+    label: Playfair Display + Roboto + Inconsolata
+  lora-montserrat:
+    label: Lora + Montserrat + IBM Plex Mono
+  poppins-open-sans:
+    label: Poppins + Open Sans + Fira Code
+  open-sans-fraunces:
+    label: Fraunces + Open Sans + JetBrains Mono
+  dm-sans-inter:
+    label: DM Sans + Inter + DM Mono
+  inter-poppins:
+    label: Inter + Poppins + JetBrains Mono
+  space-grotesk-dm-sans:
+    label: Space Grotesk + DM Sans + Fira Code
+  fraunces-dm-sans:
+    label: Fraunces + DM Sans + IBM Plex Mono
+  libre-baskerville-inter:
+    label: Libre Baskerville + Inter + JetBrains Mono
+  instrument-serif-instrument-sans:
+    label: Instrument Serif + Instrument Sans + IBM Plex Mono
+  newsreader-dm-sans:
+    label: Newsreader + DM Sans + JetBrains Mono
+  work-sans-merriweather:
+    label: Work Sans + Merriweather + IBM Plex Mono
+  source-sans-pro-domine:
+    label: Source Sans Pro + Domine + Source Code Pro
+  montserrat-crimson-text:
+    label: Montserrat + Crimson Text + IBM Plex Mono
+  cormorant-garamond-proza-libre:
+    label: Cormorant Garamond + Proza Libre + JetBrains Mono
+  arvo-lato:
+    label: Arvo + Lato + Inconsolata
+  bricolage-grotesque-crimson-text:
+    label: Bricolage Grotesque + Crimson Text + IBM Plex Mono
+  quicksand-roboto-slab:
+    label: Quicksand + Roboto Slab + Fira Code
+  roboto-nunito:
+    label: Roboto + Nunito + Roboto Mono
+  garamond-lato:
+    label: EB Garamond + Lato + IBM Plex Mono
+  geist-inter:
+    label: Geist + Inter + Geist Mono
+  minimal:
+    label: Minimal — clean sans stack

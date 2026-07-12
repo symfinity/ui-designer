@@ -1,0 +1,58 @@
+{# Shared preview host partial — consumer apps include in base layout (142). #}
+{% set preview_context = ui_designer_preview_context() %}
+{% set preview_token = app.request.attributes.get('_ui_designer_preview_token') %}
+{% set preview_expired = app.request.attributes.get('_ui_designer_preview_expired') %}
+{% set drawer_session = ui_designer_drawer_session() %}
+
+{% if (preview_context and preview_context.isPreviewActive) or (drawer_session and drawer_session.open) %}
+    {% include '@UiDesigner/drawer/_drawer_chrome.css.twig' %}
+{% endif %}
+
+{% set typography_preview_html = ui_designer_typography_preview_html() %}
+{% if typography_preview_html %}
+    <div id="ui-designer-preview-fonts">{{ typography_preview_html|raw }}</div>
+{% endif %}
+
+{% set host_preview_css = '' %}
+{% if drawer_session and drawer_session.open %}
+    {% set host_preview_css = ui_designer_drawer_preview_css() %}
+{% elseif preview_context and preview_context.isPreviewActive %}
+    {% set host_preview_css = preview_context.css %}
+{% endif %}
+{% if host_preview_css %}
+    <style id="ui-designer-preview-css">{{ host_preview_css|raw }}</style>
+{% endif %}
+
+{% if preview_context and preview_context.isPreviewActive %}
+    <aside class="ui-preview-banner" role="status">
+        <strong>Preview:</strong>
+        <code>{{ preview_context.resolvedThemeId }}</code>
+        {% if preview_context.activePolarity %}
+            <span data-ui-designer-preview-polarity>({{ preview_context.activePolarity }})</span>
+        {% endif %}
+        <a href="{{ path('ui_designer_import_hub') }}">Back to UI Designer</a>
+        {% if drawer_session and not drawer_session.open %}
+            <form method="post"
+                  action="{{ path('ui_designer_drawer_reopen') }}"
+                  class="ui-preview-banner__reopen"
+                  data-controller="csrf-protection"
+                  data-turbo="false">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('submit') }}">
+                <input type="hidden" name="return_url" value="{{ app.request.pathInfo }}">
+                <button type="submit" class="ui-preview-banner__reopen-btn">Open UI Designer</button>
+            </form>
+        {% endif %}
+        {% if preview_token %}
+            <a href="{{ path('ui_designer_preview_exit', { preview: preview_token }) }}" class="ui-preview-banner__exit">Exit preview</a>
+        {% endif %}
+    </aside>
+{% elseif preview_expired %}
+    <aside class="ui-preview-banner ui-preview-banner--expired" role="alert">
+        Preview session expired — showing built-in theme.
+        <a href="{{ path('ui_designer_import_hub') }}">Return to UI Designer</a>
+    </aside>
+{% endif %}
+
+{% if drawer_session and drawer_session.open %}
+    {{ render(path('ui_designer_drawer_fragment')) }}
+{% endif %}

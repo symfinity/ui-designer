@@ -8,6 +8,8 @@ use Symfinity\UiDesigner\Preview\DesignerPreviewTokenResolver;
 use Symfinity\UiDesigner\Preview\PreviewSession;
 use Symfinity\UiDesigner\Preview\PreviewSessionStore;
 use Symfinity\UiDesigner\Session\DesignerDraftSession;
+use Symfinity\UiDesigner\Session\PreviewHostSession;
+use Symfinity\UiDesigner\Session\StudioDrawerSession;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,8 @@ final class PreviewController extends AbstractController
         private readonly DesignerDraftSession $draftSession,
         private readonly PreviewSessionStore $previewSessionStore,
         private readonly DesignerPreviewTokenResolver $previewTokenResolver,
+        private readonly PreviewHostSession $previewHostSession,
+        private readonly StudioDrawerSession $drawerSession,
     ) {
     }
 
@@ -62,6 +66,9 @@ final class PreviewController extends AbstractController
             $this->previewTokenResolver->revoke($token);
         }
 
-        return $this->redirectToRoute('ui_designer_studio');
+        $this->previewHostSession->clear();
+        $this->drawerSession->clear();
+
+        return $this->redirectToRoute('ui_designer_import_hub');
     }
 }

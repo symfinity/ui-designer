@@ -25,6 +25,7 @@ final class DesignerPreviewPort
         private readonly StructuralPreviewOverlay $structuralOverlay,
         private readonly DtcgSemanticEditor $semanticEditor,
         private readonly PaletteRampSampler $paletteSampler,
+        private readonly HostPreviewCssScoper $hostPreviewCssScoper = new HostPreviewCssScoper(),
     ) {
     }
 
@@ -48,6 +49,14 @@ final class DesignerPreviewPort
             $structural->radiusStep,
             $structural->shadowStep,
             $variant->schemaVersion(),
+        );
+
+        $tokenMap = $tokens->all();
+        $css = $this->hostPreviewCssScoper->scopeToHostDocument(
+            $css,
+            $draft->id,
+            $tokenMap['--ui-color-surface'] ?? null,
+            $tokenMap['--ui-color-text'] ?? null,
         );
 
         return new PreviewArtifact(

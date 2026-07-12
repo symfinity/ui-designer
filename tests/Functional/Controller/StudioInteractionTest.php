@@ -122,11 +122,41 @@ final class StudioInteractionTest extends WebTestCase
     }
 
     #[Test]
-    public function homeRedirectsToStudio(): void
+    public function previewModeToggle(): void
+    {
+        $client = $this->loadSemanticPreset();
+
+        $client->request('GET', '/ui-designer/studio');
+        self::assertStringContainsString('id="studio-mode-light"', $client->getResponse()->getContent() ?: '');
+
+        $client->request(
+            'POST',
+            '/ui-designer/studio/api/preview-mode',
+            ['mode' => 'dark'],
+            server: ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'],
+        );
+        self::assertResponseIsSuccessful();
+        $payload = json_decode($client->getResponse()->getContent() ?: '', true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($payload['ok']);
+        self::assertSame('dark', $payload['mode']);
+        self::assertNotEmpty($payload['preview_css']);
+    }
+
+    #[Test]
+    public function homeRedirectsToImportHub(): void
     {
         $client = static::createClient();
         $client->request('GET', '/ui-designer');
-        self::assertResponseRedirects('/ui-designer/studio');
+        self::assertResponseRedirects('/ui-designer/import');
+    }
+
+    #[Test]
+    public function importHubShowsStartCustomizingAfterPresetLoad(): void
+    {
+        $client = $this->loadSemanticPreset();
+        $html = $client->getResponse()->getContent() ?: '';
+        self::assertStringContainsString('Start customizing', $html);
+        self::assertStringContainsString('/ui-designer/drawer/start', $html);
     }
 
     private function loadSemanticPreset(): \Symfony\Bundle\FrameworkBundle\KernelBrowser

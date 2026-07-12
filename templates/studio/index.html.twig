@@ -4,18 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UI Designer{% if draft %} — {{ draft.id }}{% endif %}</title>
+    {% include '@UiDesigner/studio/_studio_chrome.css.twig' %}
     {% if preview_css %}
         <style id="theme-live-css">{{ preview_css|raw }}</style>
     {% else %}
         <style id="theme-live-css"></style>
     {% endif %}
 </head>
-<body class="ui-designer-studio" data-theme="{{ draft ? draft.id : 'designer-empty' }}"{% if preview_mode == 'dark' %} data-preview-mode="dark"{% endif %}
-      data-controller="studio"
-      data-studio-apply-url-value="{{ path('ui_designer_studio_apply_colour') }}"
-      data-studio-undo-url-value="{{ path('ui_designer_studio_undo') }}"
-      data-studio-select-role-url-value="{{ path('ui_designer_studio_select_role') }}"
->
+<body class="ui-designer-studio" data-theme="{{ draft ? draft.id : 'designer-empty' }}"{% if preview_mode == 'dark' %} data-preview-mode="dark"{% endif %}>
 <nav class="ui-designer-nav" aria-label="UI Designer">
     <a href="{{ path('ui_designer_import_hub') }}" class="{{ active_nav == 'import' ? 'is-active' : '' }}">Import</a>
     <a href="{{ path('ui_designer_studio') }}" class="{{ active_nav == 'studio' ? 'is-active' : '' }}">Studio</a>
@@ -31,8 +27,16 @@
 
     {% if draft %}
         <header class="ui-designer-topbar">
-            <h1>{{ draft.id }}</h1>
-            <span class="ui-designer-topbar__meta">{{ draft.lineage }} · {{ preview_mode }}</span>
+            <div>
+                <h1>{{ draft.id }}</h1>
+                <span class="ui-designer-topbar__meta">{{ draft.lineage }} · {{ preview_mode }}</span>
+            </div>
+            <div class="ui-designer-topbar__actions">
+                {% include '@UiDesigner/studio/_start_customizing.html.twig' with {
+                    return_url: '/',
+                    hint: false,
+                } only %}
+            </div>
             <form method="post" action="{{ path('ui_designer_studio_load') }}" class="ui-designer-presets">
                 <select name="theme_id">
                     {% for preset in presets %}
@@ -48,7 +52,7 @@
                 <section class="ui-designer-panel">
                     <h2>Semantic roles</h2>
                     {% for group in token_groups %}
-                        <details{% if group.id == 'core' %} open{% endif %}>
+                        <details{% if group.default_open|default(false) %} open{% endif %}>
                             <summary>{{ group.label }}</summary>
                             <ul class="ui-designer-token-list">
                                 {% for role in group.roles %}
@@ -92,8 +96,32 @@
             </aside>
 
             <div class="ui-designer-canvas">
-                <div id="studio-preview" class="ui-designer-preview" data-theme="{{ draft.id }}">
-                    {% include '@UiDesigner/studio/_preview_specimens.html.twig' %}
+                <div class="ui-designer-stage__toolbar">
+                    <div class="ui-designer-mode-toggle" role="group" aria-label="Preview mode">
+                        <button type="button"
+                                id="studio-mode-light"
+                                class="{% if preview_mode != 'dark' %}is-active{% endif %}"
+                                data-studio-mode="light"
+                                {% if not has_dark_variant %}disabled title="Load default or semantic for a dark companion"{% endif %}>
+                            Light
+                        </button>
+                        <button type="button"
+                                id="studio-mode-dark"
+                                class="{% if preview_mode == 'dark' %}is-active{% endif %}"
+                                data-studio-mode="dark"
+                                {% if not has_dark_variant %}disabled title="Load default or semantic for a dark companion"{% endif %}>
+                            Dark
+                        </button>
+                    </div>
+                </div>
+                <div class="ui-designer-device-wrap">
+                    <div id="studio-preview-device"
+                         class="ui-designer-device{% if preview_mode == 'dark' %} is-dark-preview{% endif %}"
+                         data-theme="{{ draft.id }}">
+                        <div id="studio-preview" class="ui-designer-preview">
+                            {% include '@UiDesigner/studio/_preview_specimens.html.twig' %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -115,15 +143,14 @@
             </aside>
         </div>
     {% else %}
+        {# Empty studio redirects to import hub — keep fallback for direct links. #}
         <section class="ui-designer-empty">
             <h1>UI Designer</h1>
-            <p>Load a built-in preset to start authoring DTCG theme tokens.</p>
-            <form method="post" action="{{ path('ui_designer_studio_load') }}">
-                <input type="hidden" name="theme_id" value="semantic">
-                <button type="submit">Load semantic preset</button>
-            </form>
+            <p>Load a preset from the import hub first.</p>
+            <a href="{{ path('ui_designer_import_hub') }}" class="ui-designer-btn ui-designer-btn--primary">Go to import hub</a>
         </section>
     {% endif %}
 </main>
+{% include '@UiDesigner/studio/_studio_interactions.html.twig' %}
 </body>
 </html>

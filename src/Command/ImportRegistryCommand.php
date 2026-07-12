@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'ui-designer:import-registry', description: 'Import shadcn registry JSON into DTCG draft files')]
+#[AsCommand(name: 'ui-designer:import-registry', description: 'Import registry theme JSON into DTCG draft files')]
 final class ImportRegistryCommand extends Command
 {
     public function __construct(

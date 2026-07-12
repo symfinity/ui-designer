@@ -9,6 +9,10 @@ services:
             - '../src/UiDesignerBundle.php'
             - '../src/DependencyInjection/'
             - '../src/Model/'
+            - '../src/Typography/FontManagerFontPreviewAdapter.php'
+            - '../src/Typography/FonttrioPairingCatalog.php'
+            - '../src/Typography/NullFontPreviewPort.php'
+            - '../src/Typography/FontPreviewPort.php'
 
     Symfinity\UiDesigner\Factory\DtcgDraftFactory:
         arguments:
@@ -42,3 +46,9 @@ services:
     Symfinity\UiKernel\Preview\SessionThemeInjectionPort: '@Symfinity\UiDesigner\Preview\DesignerPreviewTokenResolver'
 
     Symfinity\UiDesigner\Preview\DesignerPreviewTokenResolver: ~
+
+    Symfinity\UiDesigner\Typography\FonttrioPairingCatalog:
+        arguments:
+            $catalogPath: '%symfinity.ui_designer.bundle_path%/config/font_pairing_catalog.yaml'
+
+    Symfinity\UiDesigner\Infrastructure\UxIconsAvailabilityProbe: ~

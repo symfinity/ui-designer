@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner;
 
+use Symfinity\UiDesigner\DependencyInjection\Compiler\FontPreviewPortPass;
 use Symfinity\UiDesigner\DependencyInjection\UiDesignerExtension;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Configurator\TwigConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -13,6 +14,12 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class UiDesignerBundle extends Bundle
 {
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+        $container->addCompilerPass(new FontPreviewPortPass());
+    }
+
     public function getContainerExtension(): ExtensionInterface
     {
         return new UiDesignerExtension();

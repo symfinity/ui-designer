@@ -1,0 +1,41 @@
+{% if draft and token_roles is defined %}
+    <div class="ui-designer-token-list" role="list">
+        {% for role in token_roles %}
+            {% set resolved = resolved_colors[role] ?? null %}
+            {% set is_active = selected_role == role %}
+            <div class="ui-designer-token-row{% if is_active %} is-active{% endif %}"
+                 role="listitem"
+                 data-drawer-token-row
+                 data-role="{{ role }}">
+                <button type="button"
+                        class="ui-designer-token-row__select"
+                        data-drawer-select-role="{{ role }}"
+                        aria-pressed="{{ is_active ? 'true' : 'false' }}">
+                    <span class="ui-designer-token-row__label">{{ role|replace({'_': ' '})|title }}</span>
+                </button>
+                <div class="ui-designer-token-row__editor">
+                    <button type="button"
+                            class="ui-designer-token-row__swatch"
+                            data-drawer-token-swatch
+                            data-drawer-open-catalog="{{ role }}"
+                            title="Open palette catalog"
+                            aria-label="Pick palette ref for {{ role }}"
+                            style="background: {{ resolved ? resolved.color : '#808080' }};"></button>
+                    <input type="text"
+                           class="ui-designer-token-row__input"
+                           data-drawer-ref-input
+                           data-role="{{ role }}"
+                           value="{{ resolved ? resolved.ref : '' }}"
+                           placeholder="oklch(0.62 0.21 260) or blue.600"
+                           aria-label="{{ role }} colour (OKLCH or palette ref)"
+                           title="OKLCH literal or kernel palette ref — maps to nearest ramp on apply">
+                    <span class="ui-designer-token-row__hex" data-drawer-token-hex title="Computed preview">{{ resolved ? resolved.color : '—' }}</span>
+                    <button type="button"
+                            class="ui-designer-token-row__shuffle"
+                            data-drawer-shuffle="{{ role }}"
+                            title="Map nearest palette ref">↻</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

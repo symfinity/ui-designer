@@ -1,2 +1,187 @@
 parameters:
-    ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Strict comparison using \!\=\= between Symfinity\\UiDesigner\\Model\\DesignerDraft and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Controller/StudioController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type Symfinity\\UiDesigner\\Model\\DesignerDraft\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: src/Controller/StudioController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>activeMode" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: src/Preview/DesignerPreviewTokenResolver.php
+
+		-
+			message: '#^Access to constant SEARCH on an unknown class Symfinity\\FontManager\\Enum\\ProviderFeature\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Access to constant SWAP on an unknown class Symfinity\\FontManager\\Enum\\FontDisplay\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Call to method getProvider\(\) on an unknown class Symfinity\\FontManager\\Provider\\ProviderRegistry\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Call to method import\(\) on an unknown class Symfinity\\FontManager\\Import\\FontPairingImportPort\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Call to method renderCdnLinks\(\) on an unknown class Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Call to method searchFonts\(\) on an unknown class Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Call to method supports\(\) on an unknown class Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot access offset ''body'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot access offset ''heading'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot access offset ''mono'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot call method getFonts\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot call method getId\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Cannot call method getRoles\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Caught class Symfinity\\FontManager\\Exception\\ConfigurationException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:googleProvider\(\) has invalid return type Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:googleProvider\(\) should return Symfinity\\FontManager\\Provider\\FontProviderInterface but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:renderStylesheetLink\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \#1 \$pairingId of method Symfinity\\UiDesigner\\Typography\\TypographySelection\:\:withPairing\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \#1 \$slug of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:familyForRole\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \#2 \$fonts of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:familyForRole\(\) expects array\<string, array\<string, mixed\>\>, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \$pairingImportPort of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:__construct\(\) has invalid type Symfinity\\FontManager\\Import\\FontPairingImportPort\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \$provider of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:canSearch\(\) has invalid type Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \$provider of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:renderStylesheetLink\(\) has invalid type Symfinity\\FontManager\\Provider\\FontProviderInterface\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Parameter \$providerRegistry of method Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:__construct\(\) has invalid type Symfinity\\FontManager\\Provider\\ProviderRegistry\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Property Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:\$pairingImportPort has unknown class Symfinity\\FontManager\\Import\\FontPairingImportPort as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php
+
+		-
+			message: '#^Property Symfinity\\UiDesigner\\Typography\\FontManagerFontPreviewAdapter\:\:\$providerRegistry has unknown class Symfinity\\FontManager\\Provider\\ProviderRegistry as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Typography/FontManagerFontPreviewAdapter.php

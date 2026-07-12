@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\Tests\Integration;
 
+use Symfinity\UiDesigner\Tests\Functional\Controller\HostPreviewFixtureController;
 use Symfinity\UiDesigner\UiDesignerBundle;
 use Symfinity\UiKernel\UiKernelBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
@@ -30,6 +31,7 @@ class UiDesignerTestKernel extends Kernel
     protected function configureRoutes(RoutingConfigurator $routes): void
     {
         $routes->import(\dirname(__DIR__, 2) . '/config/routes/ui_designer.yaml');
+        $routes->import(\dirname(__DIR__) . '/Functional/Controller/HostPreviewFixtureController.php', 'attribute');
     }
 
     protected function configureContainer(ContainerConfigurator $container): void
@@ -42,6 +44,7 @@ class UiDesignerTestKernel extends Kernel
             'router' => ['utf8' => true],
             'php_errors' => ['log' => false],
             'form' => ['enabled' => false],
+            'fragments' => ['path' => '/_fragment'],
             'session' => [
                 'storage_factory_id' => 'session.storage.factory.mock_file',
             ],
@@ -52,5 +55,11 @@ class UiDesignerTestKernel extends Kernel
             'undo' => ['max_depth' => 20],
             'strict_export' => false,
         ]);
+
+        $container->services()
+            ->set(HostPreviewFixtureController::class)
+            ->public()
+            ->autowire()
+            ->autoconfigure();
     }
 }

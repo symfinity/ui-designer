@@ -6,7 +6,7 @@ integration_profile: P0
 
 Handbook for **symfinity/ui-designer** — dev-only DTCG theme designer for UI Kernel (visual studio, import, preview, export).
 
-Public semver milestones: [ROADMAP.md](../ROADMAP.md). Current line: **0.1.x** foundation (visual studio, DTCG import/export, undo and snapshots).
+Public semver milestones: [ROADMAP.md](../ROADMAP.md). Current line: **0.1.x** foundation (visual studio, Theme Generator drawer, app-wide preview, DTCG import/export, undo and snapshots).
 
 ## Pages
 

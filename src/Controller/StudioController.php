@@ -8,6 +8,7 @@ use Symfinity\UiDesigner\Accessibility\ContrastPanelPresenter;
 use Symfinity\UiDesigner\Accessibility\StrictExportGate;
 use Symfinity\UiDesigner\Authoring\DtcgRolePathMapper;
 use Symfinity\UiDesigner\Authoring\DtcgSemanticEditor;
+use Symfinity\UiDesigner\Authoring\NearestRefMapper;
 use Symfinity\UiDesigner\Authoring\SelectedRole;
 use Symfinity\UiDesigner\Authoring\StructuralDraft;
 use Symfinity\UiDesigner\Collaboration\DraftSnapshot;
@@ -21,7 +22,12 @@ use Symfinity\UiDesigner\Import\ImportRequest;
 use Symfinity\UiDesigner\Import\ShadcnRegistryImporter;
 use Symfinity\UiDesigner\Kernel\BuiltinDraftLoader;
 use Symfinity\UiDesigner\Model\DesignerDraft;
+use Symfinity\UiDesigner\Model\DesignerPairSession;
 use Symfinity\UiDesigner\Session\DesignerDraftSession;
+use Symfinity\UiDesigner\Session\PreviewHostSession;
+use Symfinity\UiDesigner\Session\StudioDrawerSession;
+use Symfinity\UiKernel\Palette\OklchColorSpace;
+use Symfinity\UiKernel\Token\ThemeConfig;
 use Symfinity\UiDesigner\Studio\StudioPreviewAugmenter;
 use Symfinity\UiDesigner\Studio\TokenGroupRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,19 +53,32 @@ final class StudioController extends AbstractController
         private readonly ReviewZipBuilder $reviewZipBuilder,
         private readonly StrictExportGate $strictExportGate,
         private readonly ShadcnRegistryImporter $registryImporter,
+        private readonly StudioDrawerSession $drawerSession,
+        private readonly PreviewHostSession $previewHostSession,
+        private readonly NearestRefMapper $nearestRefMapper,
+        private readonly OklchColorSpace $colorSpace = new OklchColorSpace(),
     ) {
     }
 
     #[Route('', name: 'ui_designer_home', methods: ['GET'], priority: 20)]
     public function homeRedirect(): Response
     {
-        return $this->redirectToRoute('ui_designer_studio');
+        return $this->redirectToRoute('ui_designer_import_hub');
     }
 
     #[Route('/studio', name: 'ui_designer_studio', methods: ['GET'])]
     public function studio(): Response
     {
         $draft = $this->draftSession->current();
+        if ($draft === null) {
+            return $this->redirectToRoute('ui_designer_import_hub');
+        }
+        if ($this->drawerSession->isOpen()) {
+            $drawer = $this->drawerSession->current();
+            $returnUrl = $drawer['return_url'] ?? '/';
+
+            return $this->redirect($returnUrl);
+        }
         $structural = $this->draftSession->structural();
         $pair = $this->draftSession->pair();
 
@@ -76,7 +95,7 @@ final class StudioController extends AbstractController
                 ? $this->contrastPanel->present($draft)
                 : ['available' => false, 'notice' => 'Load a preset to review contrast.', 'rows' => []],
             'semantic_roles' => $this->tokenGroupRegistry->allRoles(),
-            'token_groups' => $this->tokenGroupRegistry->groups(),
+            'token_groups' => $this->tokenGroupRegistry->groups($draft),
             'role_css_vars' => $this->tokenGroupRegistry->roleCssVars(),
             'selected_role' => $this->draftSession->selectedRole()->activeRole,
             'radius_steps' => StructuralDraft::RADIUS_STEPS,
@@ -93,7 +112,7 @@ final class StudioController extends AbstractController
         if ($themeId === '') {
             $this->addFlash('error', 'theme_id required.');
 
-            return $this->redirectToRoute('ui_designer_studio');
+            return $this->redirectToRoute('ui_designer_import_hub');
         }
 
         try {
@@ -101,13 +120,13 @@ final class StudioController extends AbstractController
         } catch (\InvalidArgumentException $e) {
             $this->addFlash('error', $e->getMessage());
 
-            return $this->redirectToRoute('ui_designer_studio');
+            return $this->redirectToRoute('ui_designer_import_hub');
         }
 
         $this->undoStack->clear();
-        $this->addFlash('success', sprintf('Loaded %s into studio.', $themeId));
+        $this->addFlash('success', sprintf('Loaded %s — click Start customizing to preview on your app.', $themeId));
 
-        return $this->redirectToRoute('ui_designer_studio');
+        return $this->redirectToRoute('ui_designer_import_hub');
     }
 
     #[Route('/studio/api/select-role', name: 'ui_designer_studio_select_role', methods: ['POST'])]
@@ -121,6 +140,40 @@ final class StudioController extends AbstractController
         $this->draftSession->storeSelectedRole(new SelectedRole($role, time()));
 
         return $this->json(['ok' => true, 'role' => $role]);
+    }
+
+    #[Route('/studio/api/map-colour', name: 'ui_designer_studio_map_colour', methods: ['POST'])]
+    public function mapColour(Request $request): Response
+    {
+        $literal = trim($request->request->getString('literal'));
+        $role = trim($request->request->getString('role'));
+        if ($literal === '' || $role === '') {
+            return $this->json(['error' => 'literal and role required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $draft = $this->draftSession->current();
+        if ($draft === null) {
+            return $this->json(['error' => 'No draft in session'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $tuple = str_starts_with($literal, '#')
+                ? $this->colorSpace->fromHex($literal)
+                : $this->colorSpace->parse($literal);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+
+        $recipe = ThemeConfig::get($draft->id)->paletteRecipe();
+        $mapped = $this->nearestRefMapper->map($tuple, null, $recipe);
+
+        return $this->json([
+            'ref' => $mapped['ref'],
+            'confidence' => $mapped['confidence'],
+            'deltaE' => $mapped['deltaE'],
+            'status' => $mapped['status'],
+            'requiresConfirm' => $mapped['status'] === NearestRefMapper::STATUS_LOW_CONFIDENCE,
+        ]);
     }
 
     #[Route('/studio/api/apply-colour', name: 'ui_designer_studio_apply_colour', methods: ['POST'])]
@@ -164,6 +217,7 @@ final class StudioController extends AbstractController
             'semantics' => $this->semanticEditor->allRoleRefs($updated),
             'resolved_colors' => $this->previewAugmenter->resolvedRoleColors($updated),
             'contrast' => $this->contrastPanel->present($updated),
+            'can_undo' => $this->undoStack->canUndo(),
         ]);
     }
 
@@ -230,6 +284,36 @@ final class StudioController extends AbstractController
             'preview_css' => $this->previewAugmenter->previewCss($updated, $structural),
             'semantics' => $this->semanticEditor->allRoleRefs($updated),
             'can_undo' => $this->undoStack->canUndo(),
+        ]);
+    }
+
+    #[Route('/studio/api/preview-mode', name: 'ui_designer_studio_preview_mode', methods: ['POST'])]
+    public function previewMode(Request $request): Response
+    {
+        $mode = $request->request->getString('mode');
+        if (!in_array($mode, [DesignerPairSession::MODE_LIGHT, DesignerPairSession::MODE_DARK], true)) {
+            return $this->json(['error' => 'mode must be light or dark'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($this->draftSession->pair() === null) {
+            return $this->json(['error' => 'No light/dark pair in session'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->draftSession->setActiveMode($mode);
+        $draft = $this->draftSession->current();
+        $structural = $this->draftSession->structural();
+
+        $binding = $this->previewHostSession->binding();
+        if ($binding !== null) {
+            $this->previewHostSession->store($binding['token'], $mode);
+        }
+
+        return $this->json([
+            'ok' => true,
+            'mode' => $mode,
+            'theme_id' => $draft?->id,
+            'preview_css' => $this->previewAugmenter->previewCss($draft, $structural),
+            'resolved_colors' => $this->previewAugmenter->resolvedRoleColors($draft),
         ]);
     }
 
@@ -348,8 +432,8 @@ final class StudioController extends AbstractController
         $this->draftSession->clearPair();
         $this->draftSession->store($result->draft, dirty: true);
         $this->draftSession->storeStructural(StructuralDraft::empty());
-        $this->addFlash('success', sprintf('Imported registry theme "%s" — review in studio.', $result->draft->id));
+        $this->addFlash('success', sprintf('Imported registry theme "%s" — click Start customizing to preview on your app.', $result->draft->id));
 
-        return $this->redirectToRoute('ui_designer_studio');
+        return $this->redirectToRoute('ui_designer_import_hub');
     }
 }

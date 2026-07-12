@@ -4,11 +4,12 @@ Public milestones for symfinity/ui-designer on the path to 1.0.x.
 
 Dev-only theme authoring companion for [symfinity/ui-kernel](../ui-kernel/ROADMAP.md). Designer semver tracks kernel capabilities but releases independently.
 
-Current release line: **0.1.x** (v0.1.0 — Tier 1 + Tier 2 visual studio)
+Current release line: **0.1.x** (v0.1.1 — drawer + app-wide preview; v0.1.0 — Tier 1 + Tier 2 visual studio)
 
 | Version | Focus | Status |
 |---------|-------|--------|
 | 0.1.x | Foundation | Current |
+| 0.1.1 | Drawer + app preview | Shipped 2026-07-12 |
 | 0.2.x | Collaboration | Planned |
 | 0.3.x | Import depth | Planned |
 | 0.4.x | Preview and compare | Planned |
@@ -23,7 +24,9 @@ Current release line: **0.1.x** (v0.1.0 — Tier 1 + Tier 2 visual studio)
 
 ### 0.1.x — Foundation
 
-DTCG-native draft model, visual studio at `/ui-designer`, shadcn and design-token import, session preview on kernel gallery, export with contrast gate, undo stack and named snapshots, Flex recipe (dev/test only), handbook and OOTB verification
+DTCG-native draft model, visual studio at `/ui-designer`, registry and design-token import, session preview on kernel gallery, export with contrast gate, undo stack and named snapshots, Flex recipe (dev/test only), handbook and OOTB verification
+
+**0.1.1** adds the fixed Theme Generator drawer, app-wide preview host wiring, live sync, and close/reopen cycle.
 
 Requires ui-kernel **^0.3.1** (theme inheritance and capability probe)
 

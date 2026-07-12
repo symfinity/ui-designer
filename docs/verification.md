@@ -23,6 +23,19 @@ php bin/console list ui-designer
 
 Start the dev server and open **`/ui-designer`** — expect HTTP **200** and the studio shell (nav: Import · Studio · Export).
 
+### Org Packagist lab (symfinity-root)
+
+Simulates an external consumer — **no org path repo**, live **flex/main** recipe, Packagist dist:
+
+```bash
+make dogfood-new SLUG=ui-designer-packagist-lab VERSION='7.4.*' FORCE=1
+make dogfood-serve SLUG=ui-designer-packagist-lab
+```
+
+Open **`/ui-designer`**. Requires network (Packagist + symfinity/recipes).
+
+For in-tree authoring smoke (path repo + full UI stack), use **`SLUG=ui-lab`** instead.
+
 ## Prod gate
 
 With `APP_ENV=prod` and bundle **not** registered for prod:

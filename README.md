@@ -23,7 +23,7 @@
 
 - **DTCG-native authoring** — W3C design tokens + `theme.meta.yaml`; no legacy YAML pack format
 - **Visual studio** — `/ui-designer` with ref picker, contrast panel, undo, and snapshots
-- **Import engines** — shadcn registry, W3C, Tokens Studio, Figma variables
+- **Import engines** — registry theme JSON, W3C, Tokens Studio, Figma variables
 - **Session preview** — kernel gallery deep link without mutating the theme registry
 - **Export packs** — validated DTCG trees under `config/themes/{lineage}/`
 - **Dev-only forever** — Flex recipe registers bundle for **dev** and **test** only
@@ -52,7 +52,7 @@ With `APP_ENV=dev`, open **`/ui-designer`**. See [Quickstart](docs/quickstart.md
 - **[Installation](docs/installation.md)** — Flex OOTB, prod guardrails
 - **[Configuration](docs/configuration.md)** — export root, undo, snapshots
 - **[Commands](docs/commands.md)** — `ui-designer:*` CLI
-- **[Upgrade](docs/upgrade.md)** — 0.1.0 release notes
+- **[Upgrade](docs/upgrade.md)** — 0.1.x release notes
 - **[Roadmap](ROADMAP.md)** — 0.1.x–1.0.x milestones
 - **[Verification](docs/verification.md)** — clean-app smoke (P0 profile)
 

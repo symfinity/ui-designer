@@ -2,25 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>UI Designer — Import</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Designer{% if draft %} — {{ draft.id }}{% endif %}</title>
+    {% include '@UiDesigner/studio/_studio_chrome.css.twig' %}
 </head>
 <body class="ui-designer-studio">
-<nav class="ui-designer-nav">
+<nav class="ui-designer-nav" aria-label="UI Designer">
     <a href="{{ path('ui_designer_import_hub') }}" class="is-active">Import</a>
     <a href="{{ path('ui_designer_studio') }}">Studio</a>
     <span class="ui-designer-nav__sep">Export</span>
 </nav>
 <main class="ui-designer-studio__shell">
-    <h1>Import hub</h1>
-    <p>Import external design tokens into a DTCG-native designer draft.</p>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <p class="ui-designer-flash ui-designer-flash--{{ label }}">{{ message }}</p>
+        {% endfor %}
+    {% endfor %}
 
-    <section class="ui-designer-panel">
-        <h2>Shadcn registry</h2>
-        <form method="post" action="{{ path('ui_designer_import_registry_review') }}">
-            <label>Theme name <input type="text" name="name" placeholder="zinc" required></label>
-            <button type="submit">Import and review in studio</button>
-        </form>
-    </section>
+    {% if draft %}
+        <section class="ui-designer-launch">
+            <div class="ui-designer-launch__copy">
+                <h1>{{ draft.id }}</h1>
+                <p class="ui-designer-launch__meta">{{ draft.lineage }} · ready to preview on your app</p>
+                <p class="ui-designer-launch__lead">
+                    Customize semantic tokens in the Theme Generator drawer while you browse the host app.
+                </p>
+            </div>
+            {% include '@UiDesigner/studio/_start_customizing.html.twig' with {
+                return_url: '/',
+                hero: true,
+            } only %}
+            <div class="ui-designer-launch__secondary">
+                <form method="post" action="{{ path('ui_designer_studio_load') }}" class="ui-designer-presets">
+                    <label class="ui-designer-launch__preset-label">
+                        Switch preset
+                        <select name="theme_id">
+                            {% for preset in presets %}
+                                <option value="{{ preset.id }}"{% if preset.id == active_preset_id %} selected{% endif %}>{{ preset.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <button type="submit" class="ui-designer-btn ui-designer-btn--secondary">Load</button>
+                </form>
+                <p class="ui-designer-launch__footnote">
+                    Need the full-page workspace?
+                    <a href="{{ path('ui_designer_studio') }}">Open studio</a>
+                </p>
+            </div>
+        </section>
+    {% else %}
+        <section class="ui-designer-launch ui-designer-launch--empty">
+            <div class="ui-designer-launch__copy">
+                <h1>UI Designer</h1>
+                <p class="ui-designer-launch__lead">
+                    Load a built-in preset or import a registry theme, then start customizing on your app.
+                </p>
+            </div>
+            <form method="post" action="{{ path('ui_designer_studio_load') }}" class="ui-designer-start-form ui-designer-start-form--hero">
+                <input type="hidden" name="theme_id" value="semantic">
+                <button type="submit" class="ui-designer-btn ui-designer-btn--primary">Load semantic preset</button>
+                <p class="ui-designer-start-form__hint">Recommended starting point — DTCG-native semantic roles.</p>
+            </form>
+        </section>
+
+        <section class="ui-designer-panel ui-designer-panel--import">
+            <h2>Registry import</h2>
+            <p>Import an external registry theme into a designer draft.</p>
+            <form method="post" action="{{ path('ui_designer_import_registry_review') }}">
+                <label>Theme name <input type="text" name="name" placeholder="zinc" required></label>
+                <button type="submit" class="ui-designer-btn ui-designer-btn--secondary">Import registry theme</button>
+            </form>
+        </section>
+    {% endif %}
 </main>
 </body>
 </html>

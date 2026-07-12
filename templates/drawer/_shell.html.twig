@@ -1,0 +1,80 @@
+{# Fixed right drawer — Theme Generator shell (ui-designer). #}
+{% include '@UiDesigner/drawer/_drawer_chrome.css.twig' %}
+<aside id="ui-designer-drawer"
+       class="ui-designer-drawer"
+       aria-label="UI Designer"
+       data-ui-designer-drawer
+       data-preview-theme="{{ active_preset_id|default('') }}"
+       data-current-path="{{ current_path|default('/') }}">
+    {% if draft %}
+        {% include '@UiDesigner/drawer/_drawer_header.html.twig' %}
+        {% include '@UiDesigner/drawer/_tabs.html.twig' %}
+        <div class="ui-designer-drawer__body">
+            <div id="drawer-panel-colours"
+                 role="tabpanel"
+                 class="ui-designer-drawer__tabpanel"
+                 aria-labelledby="drawer-tab-colours"
+                 {% if active_tab != 'colours' %}hidden{% endif %}>
+                {% include '@UiDesigner/drawer/_palette_catalog_picker.html.twig' %}
+                {% include '@UiDesigner/drawer/_token_panel.html.twig' %}
+            </div>
+            <div id="drawer-panel-typography"
+                 role="tabpanel"
+                 class="ui-designer-drawer__tabpanel"
+                 aria-labelledby="drawer-tab-typography"
+                 {% if active_tab != 'typography' %}hidden{% endif %}>
+                {% include '@UiDesigner/drawer/_panel_typography.html.twig' %}
+            </div>
+            <div id="drawer-panel-structure"
+                 role="tabpanel"
+                 class="ui-designer-drawer__tabpanel"
+                 aria-labelledby="drawer-tab-structure"
+                 {% if active_tab != 'structure' %}hidden{% endif %}>
+                {% include '@UiDesigner/drawer/_panel_other.html.twig' %}
+            </div>
+        </div>
+        {# v0.2.x+: named snapshot save — not wired in 0.1.x
+        <footer class="ui-designer-drawer__footer">
+            <button type="button"
+                    class="ui-designer-drawer__save-hold"
+                    disabled
+                    title="Snapshot save — coming soon">
+                Hold to save theme
+            </button>
+        </footer>
+        #}
+        {% if hub_routes is defined and hub_routes|length > 0 %}
+            <nav class="ui-designer-drawer__hub" aria-label="Lab routes">
+                {% for link in hub_routes %}
+                    <a href="{{ ui_designer_preview_url(link.route) }}">{{ link.label }}</a>
+                {% endfor %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <header class="ui-designer-drawer__header">
+            <div class="ui-designer-drawer__title-row">
+                <h2 class="ui-designer-drawer__title">UI Designer</h2>
+                <form method="post"
+                      action="{{ path('ui_designer_drawer_close') }}"
+                      class="ui-designer-drawer__close-form"
+                      data-controller="csrf-protection"
+                      data-turbo="false">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('submit') }}">
+                    <input type="hidden" name="return_url" value="{{ host_return_url|default(current_path|default('/')) }}">
+                    <button type="submit" class="ui-designer-drawer__icon-btn" aria-label="Close drawer">×</button>
+                </form>
+            </div>
+        </header>
+        <div class="ui-designer-drawer__body">
+            <p class="ui-designer-drawer__hint">Load a preset from Import hub first.</p>
+            <a href="{{ path('ui_designer_import_hub') }}">Open import hub</a>
+        </div>
+    {% endif %}
+</aside>
+{% if full_palette is defined and full_palette %}
+    <script type="application/json" id="ui-designer-palette-data">{{ full_palette|json_encode|raw }}</script>
+{% endif %}
+{% if preview_css is defined and preview_css %}
+    <script type="application/json" id="ui-designer-preview-bootstrap">{{ preview_css|json_encode|raw }}</script>
+{% endif %}
+{% include '@UiDesigner/drawer/_drawer_interactions.html.twig' %}

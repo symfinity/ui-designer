@@ -20,7 +20,7 @@ php bin/console ui-designer:export --lineage=my-brand --preset=semantic
 
 ## ui-designer:import-registry
 
-Import shadcn / paletteui registry JSON into DTCG draft files.
+Import registry theme JSON into DTCG draft files.
 
 ```bash
 php bin/console ui-designer:import-registry fixtures/zinc.json --name=my-brand

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Symfinity\UiDesigner\DependencyInjection;
 
+use Symfinity\UiDesigner\Typography\FontPreviewPort;
+use Symfinity\UiDesigner\Typography\NullFontPreviewPort;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -29,6 +31,12 @@ final class UiDesignerExtension extends Extension
         $container->setParameter('symfinity.ui_designer.undo.max_depth', is_int($undo['max_depth'] ?? null) ? $undo['max_depth'] : 20);
         $container->setParameter('symfinity.ui_designer.strict_export', (bool) ($config['strict_export'] ?? false));
         $container->setParameter('symfinity.ui_designer.bundle_path', \dirname(__DIR__, 2));
+
+        $container->register(NullFontPreviewPort::class, NullFontPreviewPort::class)
+            ->setAutowired(false)
+            ->setAutoconfigured(false);
+
+        $container->setAlias(FontPreviewPort::class, NullFontPreviewPort::class);
     }
 
     public function getAlias(): string

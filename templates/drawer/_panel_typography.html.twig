@@ -1,0 +1,96 @@
+{% set typo = typography|default({}) %}
+{% set selection = typo.selection|default(null) %}
+{% set fonts_available = typo.available|default(false) %}
+
+<section class="ui-designer-drawer__panel ui-designer-drawer__panel--typography"
+         data-drawer-typography
+         data-fonts-available="{{ fonts_available ? '1' : '0' }}"
+         data-search-available="{{ typo.search_available|default(false) ? '1' : '0' }}">
+    {% if fonts_available %}
+        {% if typo.pairings|default([])|length > 0 %}
+            <div class="ui-designer-drawer__field">
+                <label for="drawer-font-pairing">
+                    Font pairing
+                    <span class="ui-designer-drawer__field-hint">{{ typo.pairings|length }} Fonttrio presets</span>
+                </label>
+                <select id="drawer-font-pairing" data-drawer-font-pairing>
+                    <option value="">Custom selection</option>
+                    {% for pairing in typo.pairings %}
+                        <option value="{{ pairing.id }}"
+                            {% if selection and selection.pairingId == pairing.id %} selected{% endif %}>
+                            {{ pairing.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        {% for row in [
+            { role: 'heading', label: 'Heading font', hint: 'Titles and display text' },
+            { role: 'body', label: 'Body font', hint: 'Paragraphs and UI copy' },
+            { role: 'mono', label: 'Monospace font', hint: 'Code and terminal text' },
+        ] %}
+            {% set role = row.role %}
+            {% set family = role == 'heading'
+                ? selection.headingFamily|default('')
+                : (role == 'body' ? selection.bodyFamily|default('') : selection.monoFamily|default('')) %}
+            <div class="ui-designer-drawer__field">
+                <label for="drawer-font-{{ role }}">
+                    {{ row.label }}
+                    <span class="ui-designer-drawer__field-hint">{{ row.hint }}</span>
+                </label>
+                <input type="text"
+                       id="drawer-font-{{ role }}"
+                       class="{% if role == 'mono' %}ui-designer-drawer__select-mono{% endif %}"
+                       data-drawer-font-role="{{ role }}"
+                       value="{{ family }}"
+                       placeholder="Search Google Fonts…"
+                       autocomplete="off"
+                       spellcheck="false"
+                       list="drawer-font-suggestions-{{ role }}"
+                       aria-describedby="drawer-fonts-hint">
+                <datalist id="drawer-font-suggestions-{{ role }}">
+                    {% for popular in typo.popular|default([]) %}
+                        <option value="{{ popular }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+        {% endfor %}
+
+        <aside class="ui-designer-drawer__callout" id="drawer-fonts-hint" role="note">
+            <span class="ui-designer-drawer__callout-icon" aria-hidden="true">ⓘ</span>
+            <p>
+                Fonts load from Google Fonts via <strong>font-manager</strong>.
+                {% if not typo.search_available|default(false) %}
+                    Add <code>providers.google.api_key</code> for full catalog search; popular families still work.
+                {% else %}
+                    Search the full Google Fonts catalog as you type.
+                {% endif %}
+            </p>
+        </aside>
+    {% else %}
+        <aside class="ui-designer-drawer__callout" id="drawer-fonts-hint" role="note">
+            <span class="ui-designer-drawer__callout-icon" aria-hidden="true">ⓘ</span>
+            <p>
+                Install <strong>symfinity/font-manager</strong> to preview Google Fonts on your app.
+                Typography picks sync live to the host page while customizing.
+            </p>
+        </aside>
+    {% endif %}
+
+    <div class="ui-designer-drawer__type-preview" aria-label="Type scale preview" data-drawer-type-preview>
+        <div id="ui-designer-drawer-type-preview-fonts" hidden aria-hidden="true">
+            {% if fonts_available and typo.preview_html|default('') %}
+                {{ typo.preview_html|raw }}
+            {% endif %}
+        </div>
+        <p data-ui-role="typography" data-ui-variant="h2">Heading sample</p>
+        <p data-ui-role="typography" data-ui-variant="p">Body sample with muted companion below.</p>
+        <p data-ui-role="typography" data-ui-variant="small">Small / caption text.</p>
+        <p data-ui-role="typography" data-ui-variant="small" data-drawer-type-mono"><code>const preview = true;</code></p>
+    </div>
+</section>
+
+{% if fonts_available and typo.preview_html|default('') %}
+    <script type="application/json" id="ui-designer-typography-bootstrap">{{ typo.preview_html|json_encode|raw }}</script>
+{% endif %}

@@ -1,0 +1,117 @@
+{# Vanilla JS — studio pages are standalone HTML (no base importmap). #}
+<script>
+(() => {
+    const applyUrl = '{{ path('ui_designer_studio_apply_colour') }}';
+    const undoUrl = '{{ path('ui_designer_studio_undo') }}';
+    const selectRoleUrl = '{{ path('ui_designer_studio_select_role') }}';
+    const modeUrl = '{{ path('ui_designer_studio_preview_mode') }}';
+
+    let activeRole = document.getElementById('studio-active-role')?.textContent?.trim() || 'primary';
+
+    async function postForm(url, data) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams(data),
+        });
+        if (!response.ok) {
+            return null;
+        }
+        return response.json();
+    }
+
+    function updatePreviewCss(css) {
+        if (!css) {
+            return;
+        }
+        const el = document.getElementById('theme-live-css');
+        if (el) {
+            el.textContent = css;
+        }
+    }
+
+    function setModeActive(mode) {
+        const light = document.getElementById('studio-mode-light');
+        const dark = document.getElementById('studio-mode-dark');
+        const device = document.getElementById('studio-preview-device');
+        if (light) {
+            light.classList.toggle('is-active', mode === 'light');
+        }
+        if (dark) {
+            dark.classList.toggle('is-active', mode === 'dark');
+        }
+        if (device) {
+            device.classList.toggle('is-dark-preview', mode === 'dark');
+        }
+    }
+
+    function updateSwatches(resolvedColors) {
+        if (!resolvedColors) {
+            return;
+        }
+        Object.entries(resolvedColors).forEach(([role, info]) => {
+            const row = document.querySelector(`.ui-designer-token-row[data-role="${role}"] .ui-designer-swatch`);
+            if (row && info?.color) {
+                row.style.background = info.color;
+            }
+        });
+    }
+
+    document.querySelectorAll('[data-action="studio#selectRole"]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const role = button.dataset.role;
+            if (!role) {
+                return;
+            }
+            activeRole = role;
+            const label = document.getElementById('studio-active-role');
+            if (label) {
+                label.textContent = role;
+            }
+            document.querySelectorAll('.ui-designer-token-row').forEach((el) => {
+                el.classList.toggle('is-selected', el.dataset.role === role);
+            });
+            await postForm(selectRoleUrl, { role });
+        });
+    });
+
+    document.querySelectorAll('[data-action="studio#applyColour"]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const input = document.getElementById('studio-colour-input');
+            const ref = input?.value?.trim();
+            if (!ref) {
+                return;
+            }
+            const payload = await postForm(applyUrl, { role: activeRole, ref, confirm: '0' });
+            if (payload?.preview_css) {
+                updatePreviewCss(payload.preview_css);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-action="studio#undo"]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const payload = await postForm(undoUrl, {});
+            if (payload?.preview_css) {
+                updatePreviewCss(payload.preview_css);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-studio-mode]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            if (button.disabled) {
+                return;
+            }
+            const mode = button.dataset.studioMode;
+            const payload = await postForm(modeUrl, { mode });
+            if (!payload?.ok) {
+                return;
+            }
+            setModeActive(mode);
+            updatePreviewCss(payload.preview_css);
+            updateSwatches(payload.resolved_colors);
+        });
+    });
+})();
+</script>
