@@ -1,0 +1,41 @@
+<div id="ui-designer-palette-catalog"
+     class="ui-designer-palette-catalog"
+     hidden
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="ui-designer-palette-catalog-title">
+    <header class="ui-designer-palette-catalog__header">
+        <div class="ui-designer-palette-catalog__brand">
+            <span class="ui-designer-palette-catalog__logo" aria-hidden="true"></span>
+            <span id="ui-designer-palette-catalog-title" class="ui-designer-palette-catalog__title">Palette catalog</span>
+        </div>
+        <div class="ui-designer-palette-catalog__view-toggle" role="group" aria-label="Catalog view">
+            <button type="button"
+                    class="ui-designer-palette-catalog__view-btn is-active"
+                    data-palette-view="list"
+                    aria-pressed="true"
+                    title="List view"
+                    aria-label="List view">☰</button>
+            <button type="button"
+                    class="ui-designer-palette-catalog__view-btn"
+                    data-palette-view="grid"
+                    aria-pressed="false"
+                    title="Grid view"
+                    aria-label="Grid view">▦</button>
+        </div>
+        <button type="button"
+                class="ui-designer-drawer__icon-btn ui-designer-palette-catalog__close"
+                data-palette-catalog-close
+                aria-label="Close palette catalog">×</button>
+    </header>
+    <div class="ui-designer-palette-catalog__search-wrap">
+        <input type="search"
+               class="ui-designer-palette-catalog__search"
+               data-palette-search
+               placeholder="Search palette refs…"
+               autocomplete="off"
+               spellcheck="false"
+               aria-label="Search palette refs">
+    </div>
+    <div class="ui-designer-palette-catalog__body" data-palette-catalog-body></div>
+</div>

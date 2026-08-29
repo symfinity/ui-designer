@@ -1,0 +1,43 @@
+<section class="ui-designer-drawer__panel ui-designer-drawer__panel--other">
+    <div class="ui-designer-drawer__field">
+        <label for="drawer-radius-step">Radius</label>
+        <select id="drawer-radius-step" data-drawer-structural="radius_step" aria-describedby="drawer-radius-hint">
+            <option value=""{% if structural.radiusStep is null %} selected{% endif %}>Default</option>
+            {% for step in radius_steps %}
+                <option value="{{ step }}"{% if structural.radiusStep == step %} selected{% endif %}>{{ step|upper }}</option>
+            {% endfor %}
+        </select>
+        <p class="ui-designer-drawer__field-footnote" id="drawer-radius-hint">Maps to kernel radius step tokens.</p>
+    </div>
+
+    <details class="ui-designer-drawer__shadow-group" open>
+        <summary class="ui-designer-drawer__shadow-summary">
+            <span>Shadow</span>
+        </summary>
+        <div class="ui-designer-drawer__shadow-body">
+            <div class="ui-designer-drawer__field">
+                <label for="drawer-shadow-step">Shadow preset</label>
+                <select id="drawer-shadow-step" data-drawer-structural="shadow_step">
+                    <option value=""{% if structural.shadowStep is null %} selected{% endif %}>Default</option>
+                    {% for step in shadow_steps %}
+                        <option value="{{ step }}"{% if structural.shadowStep == step %} selected{% endif %}>{{ step|upper }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="ui-designer-drawer__shadow-preview" aria-hidden="true">
+                <div class="ui-designer-drawer__shadow-preview-card" data-shadow-preview>
+                    Preview
+                </div>
+            </div>
+
+            <aside class="ui-designer-drawer__callout" role="note">
+                <span class="ui-designer-drawer__callout-icon" aria-hidden="true">ⓘ</span>
+                <p>
+                    Per-channel shadow sliders (opacity, blur, spread, offset) ship in <strong>0.6.x</strong>.
+                    Presets above apply structural overlay on the live preview now.
+                </p>
+            </aside>
+        </div>
+    </details>
+</section>

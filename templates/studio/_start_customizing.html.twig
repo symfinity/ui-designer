@@ -1,0 +1,17 @@
+{# Primary CTA — POST drawer/start is implementation detail; users click this button. #}
+<form method="post"
+      action="{{ path('ui_designer_drawer_start') }}"
+      class="ui-designer-start-form{% if hero|default(false) %} ui-designer-start-form--hero{% endif %}"
+      data-controller="csrf-protection"
+      data-turbo="false">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('submit') }}">
+    <input type="hidden" name="return_url" value="{{ return_url|default('/') }}">
+    <button type="submit" class="ui-designer-btn ui-designer-btn--primary">
+        Start customizing
+    </button>
+    {% if hint|default(true) %}
+        <p class="ui-designer-start-form__hint">
+            Opens the theme drawer over your app — browse routes while you edit tokens.
+        </p>
+    {% endif %}
+</form>

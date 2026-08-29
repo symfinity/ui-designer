@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Host home</title></head>
+<body{% if ui_designer_drawer_session() and ui_designer_drawer_session().open %} class="has-ui-designer-drawer"{% endif %}>
+{% include '@UiDesigner/preview/_host.html.twig' %}
+<main id="host-home">
+    <a href="{{ ui_designer_preview_url('test_host_kernel') }}">Kernel</a>
+    <button type="button" data-ui-role="button" data-ui-variant="primary">Primary</button>
+</main>
+</body>
+</html>

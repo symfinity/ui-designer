@@ -1,0 +1,863 @@
+<script>
+(() => {
+    const applyUrl = '{{ path('ui_designer_drawer_apply_colour') }}';
+    const mapUrl = '{{ path('ui_designer_drawer_map_colour') }}';
+    const undoUrl = '{{ path('ui_designer_drawer_undo') }}';
+    const selectRoleUrl = '{{ path('ui_designer_drawer_select_role') }}';
+    const modeUrl = '{{ path('ui_designer_drawer_preview_mode') }}';
+    const structuralUrl = '{{ path('ui_designer_drawer_structural') }}';
+    const tabUrl = '{{ path('ui_designer_drawer_tab') }}';
+    const fontSearchUrl = '{{ path('ui_designer_drawer_fonts_search') }}';
+    const fontRoleUrl = '{{ path('ui_designer_drawer_fonts_role') }}';
+    const fontPairingUrl = '{{ path('ui_designer_drawer_fonts_pairing') }}';
+    const paletteUrl = '{{ path('ui_designer_drawer_palette') }}';
+
+    let activeRole = document.querySelector('[data-drawer-token-row].is-active')?.dataset?.role || 'primary';
+    let paletteData = null;
+    let mapDebounce = null;
+    let fontSearchDebounce = null;
+    let fontApplyDebounce = null;
+
+    async function postForm(url, data) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams(data),
+        });
+        if (!response.ok) {
+            return null;
+        }
+        return response.json();
+    }
+
+    function updateHostPreviewCss(css) {
+        if (!css) {
+            return;
+        }
+        let el = document.getElementById('ui-designer-preview-css');
+        if (!el) {
+            el = document.createElement('style');
+            el.id = 'ui-designer-preview-css';
+        }
+        el.textContent = css;
+        document.head.appendChild(el);
+    }
+
+    function clearTypographyAssets() {
+        document.querySelectorAll('[data-ui-designer-typography-asset]').forEach((node) => node.remove());
+        ['ui-designer-typography-preview-css', 'ui-designer-host-typography-css', 'ui-designer-drawer-type-preview-css'].forEach((id) => {
+            document.getElementById(id)?.remove();
+        });
+    }
+
+    function mountTypographyPreview(html) {
+        if (!html) {
+            return;
+        }
+
+        clearTypographyAssets();
+
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+
+        wrapper.childNodes.forEach((node) => {
+            if (node.nodeType !== Node.ELEMENT_NODE) {
+                return;
+            }
+
+            if (node.tagName === 'LINK') {
+                const link = document.createElement('link');
+                link.rel = node.getAttribute('rel') || 'stylesheet';
+                const href = node.getAttribute('href');
+                if (href) {
+                    link.href = href;
+                }
+                if (node.hasAttribute('crossorigin')) {
+                    link.crossOrigin = node.getAttribute('crossorigin') || 'anonymous';
+                }
+                link.dataset.uiDesignerTypographyAsset = '1';
+                document.head.appendChild(link);
+
+                return;
+            }
+
+            if (node.tagName === 'STYLE') {
+                const style = document.createElement('style');
+                if (node.id) {
+                    style.id = node.id;
+                }
+                style.textContent = node.textContent;
+                style.dataset.uiDesignerTypographyAsset = '1';
+                document.head.appendChild(style);
+            }
+        });
+
+        const hostContainer = document.getElementById('ui-designer-preview-fonts');
+        if (hostContainer) {
+            hostContainer.replaceChildren();
+            hostContainer.hidden = true;
+            hostContainer.setAttribute('aria-hidden', 'true');
+        }
+
+        const drawerContainer = document.getElementById('ui-designer-drawer-type-preview-fonts');
+        if (drawerContainer) {
+            drawerContainer.replaceChildren();
+        }
+    }
+
+    function updateTypographyPreview(html) {
+        mountTypographyPreview(html);
+    }
+
+    function bootstrapTypographyPreview() {
+        const bootstrap = document.getElementById('ui-designer-typography-bootstrap');
+        if (bootstrap?.textContent) {
+            try {
+                mountTypographyPreview(JSON.parse(bootstrap.textContent));
+
+                return;
+            } catch (error) {
+                // ignore malformed bootstrap payload
+            }
+        }
+
+        const hostContainer = document.getElementById('ui-designer-preview-fonts');
+        if (hostContainer?.innerHTML.trim()) {
+            mountTypographyPreview(hostContainer.innerHTML);
+        }
+    }
+
+    function applySelectionToInputs(selection) {
+        if (!selection) {
+            return;
+        }
+        ['heading', 'body', 'mono'].forEach((role) => {
+            const input = document.querySelector(`[data-drawer-font-role="${role}"]`);
+            const key = `${role}_family`;
+            if (input && selection[key]) {
+                input.value = selection[key];
+            }
+        });
+        const pairingSelect = document.querySelector('[data-drawer-font-pairing]');
+        if (pairingSelect && selection.pairing_id) {
+            pairingSelect.value = selection.pairing_id;
+        } else if (pairingSelect && !selection.pairing_id) {
+            pairingSelect.value = '';
+        }
+    }
+
+    async function applyFontRole(role, family) {
+        const payload = await postForm(fontRoleUrl, { role, family });
+        if (!payload?.ok) {
+            return;
+        }
+        applySelectionToInputs(payload.selection);
+        updateTypographyPreview(payload.preview_html);
+    }
+
+    async function applyFontPairing(pairingId) {
+        const payload = await postForm(fontPairingUrl, { pairing_id: pairingId });
+        if (!payload?.ok) {
+            return;
+        }
+        applySelectionToInputs(payload.selection);
+        updateTypographyPreview(payload.preview_html);
+    }
+
+    async function searchFontsForRole(role, query) {
+        const payload = await postForm(fontSearchUrl, { query, limit: '24' });
+        if (!payload?.ok || !Array.isArray(payload.results)) {
+            return;
+        }
+        const datalist = document.getElementById(`drawer-font-suggestions-${role}`);
+        if (!datalist) {
+            return;
+        }
+        datalist.innerHTML = '';
+        payload.results.forEach((entry) => {
+            if (!entry?.family) {
+                return;
+            }
+            const option = document.createElement('option');
+            option.value = entry.family;
+            datalist.appendChild(option);
+        });
+    }
+
+    function initTypographyPanel() {
+        const panel = document.querySelector('[data-drawer-typography]');
+        if (!panel || panel.dataset.fontsAvailable !== '1') {
+            return;
+        }
+
+        if (panel.dataset.typographyInit === '1') {
+            return;
+        }
+        panel.dataset.typographyInit = '1';
+
+        panel.querySelector('[data-drawer-font-pairing]')?.addEventListener('change', async (event) => {
+            const pairingId = event.target.value;
+            if (!pairingId) {
+                return;
+            }
+            await applyFontPairing(pairingId);
+        });
+
+        panel.querySelectorAll('[data-drawer-font-role]').forEach((input) => {
+            const role = input.dataset.drawerFontRole;
+            if (!role) {
+                return;
+            }
+
+            input.addEventListener('input', () => {
+                const query = input.value.trim();
+                clearTimeout(fontSearchDebounce);
+                if (query.length >= 2) {
+                    fontSearchDebounce = setTimeout(() => searchFontsForRole(role, query), 250);
+                }
+            });
+
+            input.addEventListener('change', () => {
+                const family = input.value.trim();
+                if (!family) {
+                    return;
+                }
+                clearTimeout(fontApplyDebounce);
+                fontApplyDebounce = setTimeout(() => applyFontRole(role, family), 150);
+            });
+        });
+    }
+
+    function updateSwatches(resolvedColors) {
+        if (!resolvedColors) {
+            return;
+        }
+        Object.entries(resolvedColors).forEach(([role, info]) => {
+            const row = document.querySelector(`[data-drawer-token-row][data-role="${role}"]`);
+            if (!row || !info) {
+                return;
+            }
+            const swatch = row.querySelector('[data-drawer-token-swatch]');
+            const hex = row.querySelector('[data-drawer-token-hex]');
+            const input = row.querySelector('[data-drawer-ref-input]');
+            if (swatch && info.color) {
+                swatch.style.background = info.color;
+            }
+            if (hex && info.color) {
+                hex.textContent = info.color;
+            }
+            if (input && info.ref) {
+                input.value = info.ref;
+            }
+        });
+    }
+
+    function setModeActive(mode) {
+        document.getElementById('drawer-mode-light')?.classList.toggle('is-active', mode === 'light');
+        document.getElementById('drawer-mode-dark')?.classList.toggle('is-active', mode === 'dark');
+    }
+
+    async function applyRef(role, ref) {
+        const payload = await postForm(applyUrl, { role, ref, confirm: '0' });
+        if (!payload?.ok) {
+            return;
+        }
+        updateHostPreviewCss(payload.preview_css);
+        updateSwatches(payload.resolved_colors);
+        document.querySelector('[data-drawer-action="undo"]')?.toggleAttribute('disabled', !payload.can_undo && payload.can_undo !== undefined);
+        highlightPaletteSelection(role, ref);
+    }
+
+    async function mapAndApply(role, literal) {
+        const mapped = await postForm(mapUrl, { role, literal });
+        if (!mapped?.ref) {
+            return;
+        }
+        await applyRef(role, mapped.ref);
+    }
+
+    document.querySelectorAll('[data-drawer-select-role]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const role = button.dataset.drawerSelectRole;
+            if (!role) {
+                return;
+            }
+            activeRole = role;
+            document.querySelectorAll('[data-drawer-token-row]').forEach((row) => {
+                row.classList.toggle('is-active', row.dataset.role === role);
+            });
+            await postForm(selectRoleUrl, { role });
+        });
+    });
+
+    document.querySelectorAll('[data-drawer-apply-ref]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const role = button.dataset.drawerApplyRef;
+            const input = document.querySelector(`[data-drawer-ref-input][data-role="${role}"]`);
+            const ref = input?.value?.trim();
+            if (!role || !ref) {
+                return;
+            }
+            if (ref.toLowerCase().startsWith('oklch(')) {
+                await mapAndApply(role, ref);
+                return;
+            }
+            await applyRef(role, ref);
+        });
+    });
+
+    document.querySelectorAll('[data-drawer-ref-input]').forEach((input) => {
+        input.addEventListener('input', () => {
+            const role = input.dataset.role;
+            const value = input.value.trim();
+            if (!role || !value.toLowerCase().startsWith('oklch(')) {
+                return;
+            }
+            clearTimeout(mapDebounce);
+            mapDebounce = setTimeout(() => mapAndApply(role, value), 350);
+        });
+        input.addEventListener('keydown', async (event) => {
+            if (event.key !== 'Enter') {
+                return;
+            }
+            event.preventDefault();
+            const role = input.dataset.role;
+            const ref = input.value.trim();
+            if (!role || !ref) {
+                return;
+            }
+            if (ref.toLowerCase().startsWith('oklch(') || ref.startsWith('#')) {
+                await mapAndApply(role, ref);
+                return;
+            }
+            await applyRef(role, ref);
+        });
+    });
+
+    document.querySelectorAll('[data-drawer-shuffle]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const role = button.dataset.drawerShuffle;
+            const input = document.querySelector(`[data-drawer-ref-input][data-role="${role}"]`);
+            const current = input?.value?.trim() || 'oklch(0.62 0.21 260)';
+            const literal = current.toLowerCase().startsWith('oklch(') ? current : 'oklch(0.62 0.21 260)';
+            await mapAndApply(role, literal);
+        });
+    });
+
+    document.querySelector('[data-drawer-action="undo"]')?.addEventListener('click', async () => {
+        const payload = await postForm(undoUrl, {});
+        if (payload?.preview_css) {
+            updateHostPreviewCss(payload.preview_css);
+            updateSwatches(payload.resolved_colors);
+        }
+    });
+
+    document.querySelectorAll('[data-drawer-mode]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            if (button.disabled) {
+                return;
+            }
+            const mode = button.dataset.drawerMode;
+            const payload = await postForm(modeUrl, { mode });
+            if (!payload?.ok) {
+                return;
+            }
+            setModeActive(mode);
+            updateHostPreviewCss(payload.preview_css);
+            updateSwatches(payload.resolved_colors);
+            if (payload.theme_id) {
+                const drawer = document.querySelector('[data-ui-designer-drawer]');
+                if (drawer) {
+                    drawer.dataset.previewTheme = payload.theme_id;
+                }
+                syncHostPreviewTheme(payload.theme_id, mode);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-drawer-structural]').forEach((select) => {
+        select.addEventListener('change', async () => {
+            const payload = await postForm(structuralUrl, {
+                radius_step: document.getElementById('drawer-radius-step')?.value || '',
+                shadow_step: document.getElementById('drawer-shadow-step')?.value || '',
+            });
+            if (payload?.preview_css) {
+                updateHostPreviewCss(payload.preview_css);
+            }
+        });
+    });
+
+    function initDrawerTabs() {
+        const tablist = document.querySelector('.ui-designer-drawer__tabs[role="tablist"]');
+        if (!tablist) {
+            return;
+        }
+
+        const tabs = [...tablist.querySelectorAll('[role="tab"]:not(.ui-designer-drawer__tab--disabled)')];
+        const panels = tabs.map((tab) => {
+            const id = tab.getAttribute('aria-controls');
+            return id ? document.getElementById(id) : null;
+        });
+
+        function activateTab(tab, focusTab = true) {
+            tabs.forEach((candidate, index) => {
+                const selected = candidate === tab;
+                candidate.setAttribute('aria-selected', selected ? 'true' : 'false');
+                candidate.classList.toggle('is-active', selected);
+                candidate.tabIndex = selected ? 0 : -1;
+                const panel = panels[index];
+                if (panel) {
+                    panel.hidden = !selected;
+                }
+            });
+
+            if (focusTab) {
+                tab.focus();
+            }
+
+            const tabId = tab.dataset.drawerTab;
+            if (tabId) {
+                postForm(tabUrl, { tab: tabId });
+            }
+        }
+
+        tablist.addEventListener('click', (event) => {
+            const tab = event.target.closest('[role="tab"]:not(.ui-designer-drawer__tab--disabled)');
+            if (!tab || !tablist.contains(tab)) {
+                return;
+            }
+            event.preventDefault();
+            activateTab(tab);
+        });
+
+        tablist.addEventListener('keydown', (event) => {
+            const currentIndex = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+            if (currentIndex < 0) {
+                return;
+            }
+
+            let nextIndex = currentIndex;
+            switch (event.key) {
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    nextIndex = (currentIndex + 1) % tabs.length;
+                    break;
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                    break;
+                case 'Home':
+                    nextIndex = 0;
+                    break;
+                case 'End':
+                    nextIndex = tabs.length - 1;
+                    break;
+                default:
+                    return;
+            }
+
+            event.preventDefault();
+            activateTab(tabs[nextIndex]);
+        });
+    }
+
+    function syncHostPreviewTheme(themeId, mode) {
+        const root = document.documentElement;
+        root.dataset.uiDesignerHostPreview = '1';
+
+        if (themeId) {
+            root.dataset.theme = themeId;
+            document.querySelectorAll('[data-demo-theme-root], [data-ui-root]').forEach((node) => {
+                node.dataset.theme = themeId;
+            });
+        }
+
+        if (mode) {
+            root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
+        }
+
+        const polarity = document.querySelector('[data-ui-designer-preview-polarity]');
+        if (polarity && mode) {
+            polarity.textContent = `(${mode})`;
+        }
+    }
+
+    function bootstrapHostPreview() {
+        const bootstrap = document.getElementById('ui-designer-preview-bootstrap');
+        if (bootstrap?.textContent) {
+            try {
+                updateHostPreviewCss(JSON.parse(bootstrap.textContent));
+            } catch (error) {
+                // ignore malformed bootstrap payload
+            }
+        } else {
+            const css = document.getElementById('ui-designer-preview-css')?.textContent;
+            if (css) {
+                updateHostPreviewCss(css);
+            }
+        }
+
+        const drawer = document.querySelector('[data-ui-designer-drawer]');
+        syncHostPreviewTheme(drawer?.dataset?.previewTheme || '', drawer?.querySelector('#drawer-mode-dark')?.classList.contains('is-active') ? 'dark' : 'light');
+        bootstrapTypographyPreview();
+    }
+
+    document.querySelector('[data-drawer-action="copy"]')?.addEventListener('click', async () => {
+        const css = document.getElementById('ui-designer-preview-css')?.textContent?.trim();
+        if (!css || !navigator.clipboard?.writeText) {
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(css);
+        } catch (error) {
+            // clipboard may be blocked outside secure context
+        }
+    });
+
+    document.querySelector('[data-drawer-action="contrast"]')?.addEventListener('click', () => {
+        const panel = document.getElementById('drawer-contrast-panel');
+        if (panel) {
+            panel.hidden = !panel.hidden;
+        }
+    });
+
+    document.querySelector('.ui-designer-drawer__preset-select')?.addEventListener('change', (event) => {
+        event.target.closest('form')?.requestSubmit();
+    });
+
+    initDrawerTabs();
+    bootstrapHostPreview();
+    initTypographyPanel();
+    initPaletteCatalogPicker();
+
+    document.addEventListener('turbo:load', () => {
+        const binding = document.querySelector('[data-ui-designer-drawer]');
+        if (!binding) {
+            return;
+        }
+        bootstrapHostPreview();
+        initTypographyPanel();
+        initPaletteCatalogPicker();
+    });
+
+    function loadPaletteData() {
+        if (paletteData) {
+            return paletteData;
+        }
+        const embedded = document.getElementById('ui-designer-palette-data');
+        if (embedded?.textContent) {
+            try {
+                paletteData = JSON.parse(embedded.textContent);
+                return paletteData;
+            } catch (error) {
+                paletteData = null;
+            }
+        }
+        return null;
+    }
+
+    async function ensurePaletteData() {
+        const cached = loadPaletteData();
+        if (cached) {
+            return cached;
+        }
+        const response = await fetch(paletteUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!response.ok) {
+            return null;
+        }
+        const payload = await response.json();
+        if (payload?.palette) {
+            paletteData = payload.palette;
+        }
+        return paletteData;
+    }
+
+    let catalogPickerRole = null;
+    let catalogView = 'list';
+    let catalogSearchQuery = '';
+
+    function paletteToFamilies(palette) {
+        if (!palette) {
+            return [];
+        }
+        const families = [];
+        Object.entries(palette.hues || {}).forEach(([id, steps]) => {
+            families.push({
+                id,
+                label: id.charAt(0).toUpperCase() + id.slice(1),
+                steps: (steps || []).map((step) => ({
+                    id: step.ref,
+                    ref: step.ref,
+                    color: step.color,
+                    level: step.level,
+                })),
+            });
+        });
+        const activeTone = palette.activeTone || 'neutral';
+        Object.entries(palette.mono || {}).forEach(([tone, steps]) => {
+            const isActive = tone === activeTone || (tone === 'pure' && activeTone === 'neutral');
+            families.push({
+                id: `mono-${tone}`,
+                label: `Mono ${tone}${isActive ? ' ★' : ''}`,
+                steps: (steps || []).map((step) => ({
+                    id: step.ref,
+                    ref: step.ref,
+                    color: step.color,
+                    level: step.level,
+                })),
+            });
+        });
+
+        return families;
+    }
+
+    function filterPaletteFamilies(families, query) {
+        const needle = query.trim().toLowerCase();
+        if (!needle) {
+            return families;
+        }
+
+        return families
+            .map((family) => {
+                const steps = (family.steps || []).filter((step) =>
+                    step.ref.toLowerCase().includes(needle) || family.label.toLowerCase().includes(needle),
+                );
+
+                return steps.length ? { ...family, steps } : null;
+            })
+            .filter(Boolean);
+    }
+
+    function renderPaletteCatalogList(families) {
+        const fragment = document.createDocumentFragment();
+        if (!families.length) {
+            const empty = document.createElement('p');
+            empty.className = 'ui-designer-palette-catalog-empty';
+            empty.textContent = 'No palette refs match your search.';
+            fragment.appendChild(empty);
+
+            return fragment;
+        }
+        families.forEach((family) => {
+            const section = document.createElement('div');
+            section.className = 'ui-designer-palette-catalog-list__family';
+            const title = document.createElement('p');
+            title.className = 'ui-designer-palette-catalog-list__family-name';
+            title.textContent = family.label;
+            section.appendChild(title);
+            (family.steps || []).forEach((step) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'ui-designer-palette-catalog-list__item';
+                button.dataset.paletteRef = step.ref;
+                button.innerHTML = `<span class="ui-designer-palette-catalog-list__swatch" style="background:${step.color}"></span><span>${step.ref}</span>`;
+                section.appendChild(button);
+            });
+            fragment.appendChild(section);
+        });
+
+        return fragment;
+    }
+
+    function renderPaletteCatalogGrid(families, levels) {
+        const fragment = document.createDocumentFragment();
+        if (!families.length) {
+            const empty = document.createElement('p');
+            empty.className = 'ui-designer-palette-catalog-empty';
+            empty.textContent = 'No palette refs match your search.';
+            fragment.appendChild(empty);
+
+            return fragment;
+        }
+        const stepLevels = levels?.length ? levels : [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+        const scroll = document.createElement('div');
+        scroll.style.overflowX = 'auto';
+        const matrix = document.createElement('div');
+        matrix.style.display = 'grid';
+        matrix.style.gridTemplateColumns = `2rem repeat(${families.length}, 1.35rem)`;
+        matrix.style.gap = '0.2rem';
+        matrix.style.minWidth = 'max-content';
+
+        const corner = document.createElement('span');
+        matrix.appendChild(corner);
+        families.forEach((family) => {
+            const label = document.createElement('span');
+            label.className = 'ui-designer-palette-catalog-grid__label';
+            label.textContent = family.id.replace(/^mono-/, '').slice(0, 3);
+            label.title = family.label;
+            matrix.appendChild(label);
+        });
+
+        stepLevels.forEach((stepNum) => {
+            const rowLabel = document.createElement('span');
+            rowLabel.className = 'ui-designer-palette-catalog-grid__label';
+            rowLabel.textContent = String(stepNum);
+            matrix.appendChild(rowLabel);
+            families.forEach((family) => {
+                const step = (family.steps || []).find((candidate) => candidate.level === stepNum);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'ui-designer-palette-catalog-grid__cell';
+                if (!step) {
+                    button.disabled = true;
+                    button.style.visibility = 'hidden';
+                } else {
+                    button.style.background = step.color;
+                    button.title = step.ref;
+                    button.dataset.paletteRef = step.ref;
+                    button.setAttribute('aria-label', step.ref);
+                }
+                matrix.appendChild(button);
+            });
+        });
+
+        scroll.appendChild(matrix);
+        fragment.appendChild(scroll);
+
+        return fragment;
+    }
+
+    async function renderPaletteCatalogBody() {
+        const body = document.querySelector('[data-palette-catalog-body]');
+        const palette = await ensurePaletteData();
+        if (!body || !palette) {
+            return;
+        }
+        body.innerHTML = '';
+        const families = filterPaletteFamilies(paletteToFamilies(palette), catalogSearchQuery);
+        const content = catalogView === 'grid'
+            ? renderPaletteCatalogGrid(families, palette.levels)
+            : renderPaletteCatalogList(families);
+        body.appendChild(content);
+        if (catalogPickerRole) {
+            const currentRef = document.querySelector(`[data-drawer-ref-input][data-role="${catalogPickerRole}"]`)?.value?.trim();
+            highlightPaletteSelection(catalogPickerRole, currentRef);
+        }
+    }
+
+    function positionPaletteCatalog(anchor) {
+        const picker = document.getElementById('ui-designer-palette-catalog');
+        if (!picker || !anchor) {
+            return;
+        }
+        const drawer = document.querySelector('.ui-designer-drawer');
+        const anchorRect = anchor.getBoundingClientRect();
+        const drawerRect = drawer?.getBoundingClientRect();
+        const pickerWidth = picker.offsetWidth || 320;
+        let left = anchorRect.left - pickerWidth - 12;
+        if (drawerRect) {
+            left = Math.min(left, drawerRect.left - pickerWidth - 8);
+        }
+        if (left < 8) {
+            left = 8;
+        }
+        let top = anchorRect.top;
+        const maxTop = window.innerHeight - (picker.offsetHeight || 280) - 8;
+        top = Math.max(8, Math.min(top, maxTop));
+        picker.style.left = `${left}px`;
+        picker.style.top = `${top}px`;
+    }
+
+    function closePaletteCatalog() {
+        const picker = document.getElementById('ui-designer-palette-catalog');
+        if (picker) {
+            picker.hidden = true;
+        }
+        catalogPickerRole = null;
+    }
+
+    async function openPaletteCatalog(role, anchor) {
+        catalogPickerRole = role;
+        activeRole = role;
+        document.querySelectorAll('[data-drawer-token-row]').forEach((row) => {
+            row.classList.toggle('is-active', row.dataset.role === role);
+        });
+        const picker = document.getElementById('ui-designer-palette-catalog');
+        if (!picker) {
+            return;
+        }
+        await renderPaletteCatalogBody();
+        picker.hidden = false;
+        positionPaletteCatalog(anchor);
+        picker.querySelector('[data-palette-search]')?.focus();
+    }
+
+    function setPaletteCatalogView(view) {
+        catalogView = view === 'grid' ? 'grid' : 'list';
+        document.querySelectorAll('[data-palette-view]').forEach((button) => {
+            const active = button.dataset.paletteView === catalogView;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        renderPaletteCatalogBody();
+    }
+
+    function highlightPaletteSelection(role, ref) {
+        document.querySelectorAll('.ui-designer-palette-catalog-list__item, .ui-designer-palette-catalog-grid__cell').forEach((button) => {
+            button.classList.toggle('is-selected', button.dataset.paletteRef === ref);
+        });
+    }
+
+    function initPaletteCatalogPicker() {
+        document.querySelectorAll('[data-drawer-open-catalog]').forEach((button) => {
+            if (button.dataset.catalogBound === '1') {
+                return;
+            }
+            button.dataset.catalogBound = '1';
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const role = button.dataset.drawerOpenCatalog;
+                if (!role) {
+                    return;
+                }
+                if (catalogPickerRole === role && !document.getElementById('ui-designer-palette-catalog')?.hidden) {
+                    closePaletteCatalog();
+
+                    return;
+                }
+                await openPaletteCatalog(role, button);
+            });
+        });
+
+        const picker = document.getElementById('ui-designer-palette-catalog');
+        if (!picker || picker.dataset.catalogInit === '1') {
+            return;
+        }
+        picker.dataset.catalogInit = '1';
+
+        picker.querySelector('[data-palette-catalog-close]')?.addEventListener('click', closePaletteCatalog);
+
+        picker.querySelector('[data-palette-search]')?.addEventListener('input', (event) => {
+            catalogSearchQuery = event.target.value || '';
+            renderPaletteCatalogBody();
+        });
+
+        picker.querySelectorAll('[data-palette-view]').forEach((button) => {
+            button.addEventListener('click', () => setPaletteCatalogView(button.dataset.paletteView || 'list'));
+        });
+
+        picker.querySelector('[data-palette-catalog-body]')?.addEventListener('click', async (event) => {
+            const target = event.target.closest('.ui-designer-palette-catalog-list__item, .ui-designer-palette-catalog-grid__cell');
+            if (!target || !catalogPickerRole || target.disabled) {
+                return;
+            }
+            const ref = target.dataset.paletteRef;
+            if (!ref) {
+                return;
+            }
+            const input = document.querySelector(`[data-drawer-ref-input][data-role="${catalogPickerRole}"]`);
+            if (input) {
+                input.value = ref;
+            }
+            closePaletteCatalog();
+            await applyRef(catalogPickerRole, ref);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !document.getElementById('ui-designer-palette-catalog')?.hidden) {
+                closePaletteCatalog();
+            }
+        });
+    }
+})();
+</script>

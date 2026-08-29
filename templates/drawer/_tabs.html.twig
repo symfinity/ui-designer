@@ -1,0 +1,32 @@
+<nav class="ui-designer-drawer__tabs" role="tablist" aria-label="Theme generator sections">
+    <button type="button"
+            role="tab"
+            id="drawer-tab-colours"
+            class="ui-designer-drawer__tab{% if active_tab == 'colours' %} is-active{% endif %}"
+            aria-selected="{{ active_tab == 'colours' ? 'true' : 'false' }}"
+            aria-controls="drawer-panel-colours"
+            tabindex="{{ active_tab == 'colours' ? '0' : '-1' }}"
+            data-drawer-tab="colours">
+        Colors
+    </button>
+    <button type="button"
+            role="tab"
+            id="drawer-tab-typography"
+            class="ui-designer-drawer__tab{% if active_tab == 'typography' %} is-active{% endif %}"
+            aria-selected="{{ active_tab == 'typography' ? 'true' : 'false' }}"
+            aria-controls="drawer-panel-typography"
+            tabindex="{{ active_tab == 'typography' ? '0' : '-1' }}"
+            data-drawer-tab="typography">
+        Typography
+    </button>
+    <button type="button"
+            role="tab"
+            id="drawer-tab-structure"
+            class="ui-designer-drawer__tab{% if active_tab == 'structure' %} is-active{% endif %}"
+            aria-selected="{{ active_tab == 'structure' ? 'true' : 'false' }}"
+            aria-controls="drawer-panel-structure"
+            tabindex="{{ active_tab == 'structure' ? '0' : '-1' }}"
+            data-drawer-tab="structure">
+        Other
+    </button>
+</nav>
