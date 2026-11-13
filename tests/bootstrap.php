@@ -36,8 +36,22 @@ if ($autoload === null) {
     exit(1);
 }
 
-if (!class_exists(\Composer\Autoload\ClassLoader::class, false)) {
-    require $autoload;
+$loader = require $autoload;
+if ($loader instanceof Composer\Autoload\ClassLoader && is_file($packageRoot.'/composer.json')) {
+    $composer = json_decode((string) file_get_contents($packageRoot.'/composer.json'), true);
+    if (is_array($composer)) {
+        foreach (['autoload', 'autoload-dev'] as $section) {
+            foreach ($composer[$section]['psr-4'] ?? [] as $prefix => $relativePaths) {
+                $paths = is_array($relativePaths) ? $relativePaths : [$relativePaths];
+                foreach ($paths as $relativePath) {
+                    if (!is_string($prefix) || !is_string($relativePath)) {
+                        continue;
+                    }
+                    $loader->addPsr4($prefix, $packageRoot.'/'.trim($relativePath, '/').'/');
+                }
+            }
+        }
+    }
 }
 
 $localBootstrap = __DIR__.'/bootstrap.local.php';
